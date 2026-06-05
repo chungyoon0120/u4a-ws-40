@@ -1,0 +1,413 @@
+<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8">
+<title>U4A ServerList — 디자인 미리보기</title><style>/************************************************************************
+ * styles/tokens.css — 디자인 토큰 (SAP Horizon Dark 정제)
+ * 색/간격/폰트/그림자/모션을 한 곳에서. 테마 전환 시 여기만 교체.
+ ************************************************************************/
+:root {
+    /* 배경 / 표면 (깊이감) */
+    --ws-bg-0:        #0c1118;
+    --ws-bg-1:        #0f1620;
+    --ws-header:      #0a0f16;
+    --ws-surface:     #141c27;   /* 패널 */
+    --ws-surface-2:   #18212e;   /* 카드/행 교대 */
+    --ws-hover:       #1e2a39;   /* 행 hover */
+    --ws-border:      #243140;
+    --ws-border-soft: #1b2531;
+
+    /* 텍스트 */
+    --ws-text:        #e7ebf1;
+    --ws-text-muted:  #9aa7b5;
+    --ws-text-dim:    #667382;
+    --ws-text-invert: #08111e;
+
+    /* 강조 / 브랜드 / 상태 */
+    --ws-accent:      #4ea1ff;
+    --ws-accent-2:    #2f80e8;
+    --ws-accent-soft: rgba(78,161,255,.14);
+    --ws-brand:       #d63cff;          /* WS 로고 톤 */
+    --ws-brand-2:     #8b5cff;
+    --ws-success:     #37d15a;
+    --ws-neutral:     #7a8896;
+    --ws-danger:      #ef5350;
+    --ws-edit:        #3b82f6;
+    --ws-delete:      #ef4444;
+
+    /* 타이포 */
+    --ws-font: "Segoe UI", "Malgun Gothic", "Apple SD Gothic Neo", system-ui, sans-serif;
+    --ws-fs-xs: 11px; --ws-fs-sm: 12px; --ws-fs-md: 13px; --ws-fs-lg: 15px; --ws-fs-title: 15px;
+
+    /* 간격(4px 스케일) */
+    --ws-sp-1: 4px; --ws-sp-2: 8px; --ws-sp-3: 12px; --ws-sp-4: 16px; --ws-sp-5: 20px; --ws-sp-6: 28px;
+
+    /* 라운드 / 그림자 */
+    --ws-radius-sm: 6px; --ws-radius: 10px; --ws-radius-lg: 14px; --ws-radius-pill: 999px;
+    --ws-shadow-1: 0 1px 2px rgba(0,0,0,.4);
+    --ws-shadow-2: 0 10px 30px rgba(0,0,0,.45);
+    --ws-shadow-glow: 0 0 0 3px var(--ws-accent-soft);
+
+    /* 레이아웃 */
+    --ws-header-h: 44px;
+    --ws-subheader-h: 46px;
+    --ws-tree-w: 280px;
+
+    /* 모션 */
+    --ws-ease: cubic-bezier(.22,.61,.36,1);
+    --ws-dur: .22s;
+
+    /* z-index */
+    --ws-z-drawer: 40; --ws-z-backdrop: 35; --ws-z-menu: 60;
+    --ws-z-modal: 1000; --ws-z-toast: 1100; --ws-z-busy: 2000000;
+}
+
+/************************************************************************
+ * styles/base.css — 리셋 / 타이포 / 스크롤바 / 앱 루트
+ ************************************************************************/
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body { height: 100%; }
+body {
+    margin: 0;
+    color: var(--ws-text);
+    font-family: var(--ws-font);
+    font-size: var(--ws-fs-md);
+    line-height: 1.45;
+    background:
+        radial-gradient(1200px 600px at 80% -10%, rgba(78,161,255,.10), transparent 60%),
+        radial-gradient(900px 500px at -10% 110%, rgba(214,60,255,.08), transparent 55%),
+        linear-gradient(180deg, var(--ws-bg-1), var(--ws-bg-0));
+    -webkit-user-select: none; user-select: none;
+    overflow: hidden;
+}
+
+#app { height: 100%; }
+#app[hidden] { display: none; }
+
+button { font-family: inherit; cursor: pointer; color: inherit; }
+ul, ol, li { list-style: none; margin: 0; padding: 0; }
+
+:focus-visible { outline: 2px solid var(--ws-accent); outline-offset: 2px; border-radius: 4px; }
+
+/* 커스텀 스크롤바 (Electron/Chromium) */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: #2b3848; border-radius: 8px; border: 2px solid transparent; background-clip: padding-box; }
+::-webkit-scrollbar-thumb:hover { background: #38485c; background-clip: padding-box; }
+::-webkit-scrollbar-track { background: transparent; }
+
+/* 아이콘(인라인 svg) 공통 */
+.ws-ico { width: 16px; height: 16px; display: inline-block; vertical-align: middle; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+/************************************************************************
+ * styles/busy.css — Busy Indicator
+ ************************************************************************/
+.u4aWsBusyIndicator {
+    position: absolute; inset: 0; display: none;
+    align-items: center; justify-content: center;
+    background: rgba(8,12,18,.45); backdrop-filter: blur(1.5px);
+    z-index: var(--ws-z-busy);
+}
+.u4aWsBusyIndicator.is-visible { display: flex; }
+.u4aWsSpinner { display: flex; gap: 9px; }
+.u4aWsSpinner span {
+    width: 11px; height: 11px; border-radius: 50%;
+    background: var(--ws-accent);
+    animation: ws-bounce 1.3s infinite ease-in-out both;
+}
+.u4aWsSpinner span:nth-child(1) { animation-delay: -.30s; }
+.u4aWsSpinner span:nth-child(2) { animation-delay: -.15s; }
+@keyframes ws-bounce { 0%,80%,100%{ transform: scale(.4); opacity:.4 } 40%{ transform: scale(1); opacity:1 } }
+
+/************************************************************************
+ * styles/layout.css — shell 골격 (헤더/서브헤더/접이식 2분할)
+ ************************************************************************/
+.ws-shell {
+    display: grid;
+    grid-template-rows: var(--ws-header-h) var(--ws-subheader-h) 1fr;
+    height: 100%;
+    opacity: 0;
+    animation: ws-app-in .35s var(--ws-ease) forwards;
+}
+@keyframes ws-app-in { to { opacity: 1; } }
+
+/* ---- 상단 헤더 (드래그 영역) ---- */
+.ws-header {
+    -webkit-app-region: drag;
+    display: flex; align-items: center; gap: var(--ws-sp-3);
+    padding: 0 var(--ws-sp-3);
+    background: linear-gradient(180deg, #0c121a, var(--ws-header));
+    border-bottom: 1px solid var(--ws-border-soft);
+}
+.ws-header button, .ws-header .ws-iconbtn { -webkit-app-region: no-drag; }
+
+.ws-brand { display: flex; align-items: center; gap: var(--ws-sp-2); font-weight: 650; letter-spacing: .2px; }
+.ws-brand__logo {
+    width: 26px; height: 26px; border-radius: 8px;
+    display: grid; place-items: center; color: #fff; font-size: 11px; font-weight: 800;
+    background: linear-gradient(135deg, var(--ws-brand), var(--ws-brand-2));
+    box-shadow: 0 2px 10px rgba(214,60,255,.35);
+}
+.ws-header__spacer { margin-left: auto; }
+.ws-winbtns { display: flex; gap: 2px; }
+
+/* ---- 서브헤더 ---- */
+.ws-subheader {
+    display: flex; align-items: center; gap: var(--ws-sp-3);
+    padding: 0 var(--ws-sp-3);
+    background: var(--ws-surface);
+    border-bottom: 1px solid var(--ws-border);
+}
+.ws-subheader__title { font-size: var(--ws-fs-lg); font-weight: 650; }
+.ws-subheader .ws-actions { margin-left: auto; display: flex; gap: var(--ws-sp-2); }
+
+/* ---- 본문 2분할 (접이식) ---- */
+.ws-body {
+    position: relative;
+    display: grid;
+    grid-template-columns: var(--ws-tree-w) 1fr;
+    min-height: 0;
+    transition: grid-template-columns var(--ws-dur) var(--ws-ease);
+}
+.ws-shell.is-tree-collapsed .ws-body { grid-template-columns: 0px 1fr; }
+
+.ws-pane { min-height: 0; overflow: auto; }
+.ws-pane--tree {
+    background: linear-gradient(180deg, var(--ws-surface), var(--ws-bg-1));
+    border-right: 1px solid var(--ws-border);
+    display: flex; flex-direction: column;
+    min-width: 0;
+}
+.ws-shell.is-tree-collapsed .ws-pane--tree { border-right: none; }
+.ws-pane--main { background: var(--ws-bg-1); }
+
+/* 사이드바 헤더 */
+.ws-side-head {
+    display: flex; align-items: center; gap: var(--ws-sp-2);
+    padding: var(--ws-sp-3) var(--ws-sp-3) var(--ws-sp-2);
+    color: var(--ws-text-dim);
+    font-size: var(--ws-fs-xs); font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
+}
+
+/* 드로어 백드롭(모바일에서만 노출) */
+.ws-backdrop {
+    position: absolute; inset: 0; background: rgba(4,8,12,.5);
+    opacity: 0; pointer-events: none; transition: opacity var(--ws-dur);
+    z-index: var(--ws-z-backdrop);
+}
+
+/************************************************************************
+ * styles/components.css — 버튼/트리/테이블/배지/툴바/빈상태/메뉴/모달/토스트
+ ************************************************************************/
+
+/* ---- 아이콘 버튼 (헤더/툴바 공통) ---- */
+.ws-iconbtn {
+    width: 32px; height: 32px; border: 0; border-radius: var(--ws-radius-sm);
+    background: transparent; color: var(--ws-text-muted);
+    display: inline-grid; place-items: center;
+    transition: background var(--ws-dur), color var(--ws-dur);
+}
+.ws-iconbtn:hover { background: rgba(255,255,255,.06); color: var(--ws-text); }
+.ws-iconbtn--close:hover { background: var(--ws-delete); color: #fff; }
+
+/* ---- 트리 ---- */
+.ws-tree { padding: var(--ws-sp-1) var(--ws-sp-2) var(--ws-sp-3); }
+.ws-tree__children { display: flex; flex-direction: column; gap: 1px; }
+.ws-tree__children .ws-tree__children { margin-left: 14px; border-left: 1px solid var(--ws-border-soft); padding-left: 4px; }
+.ws-tree__node {
+    display: flex; align-items: center; gap: var(--ws-sp-2);
+    padding: 7px var(--ws-sp-2); border-radius: var(--ws-radius-sm);
+    cursor: pointer; color: var(--ws-text-muted); white-space: nowrap;
+    transition: background var(--ws-dur), color var(--ws-dur);
+}
+.ws-tree__node:hover { background: rgba(255,255,255,.05); color: var(--ws-text); }
+.ws-tree__node.is-selected {
+    background: var(--ws-accent-soft); color: var(--ws-text);
+    box-shadow: inset 2px 0 0 var(--ws-accent);
+}
+.ws-tree__toggle { width: 14px; color: var(--ws-text-dim); transition: transform var(--ws-dur); display: inline-grid; place-items: center; }
+.ws-tree__node.is-open > .ws-tree__toggle { transform: rotate(90deg); }
+.ws-tree__ico { color: var(--ws-accent); opacity: .85; }
+
+/* ---- 메인 패널 + 테이블 ---- */
+.ws-table-wrap { padding: var(--ws-sp-3); }
+.ws-table-toolbar {
+    display: flex; align-items: center; gap: var(--ws-sp-2);
+    padding: 2px 2px var(--ws-sp-3);
+}
+.ws-table-toolbar__title { font-weight: 650; }
+.ws-table-toolbar__spacer { margin-left: auto; }
+
+.ws-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    border: 1px solid var(--ws-border); background: var(--ws-surface-2); color: var(--ws-text);
+    border-radius: var(--ws-radius-sm); padding: 7px 12px; font-weight: 600;
+    transition: background var(--ws-dur), border-color var(--ws-dur), transform .08s;
+}
+.ws-btn:hover { background: var(--ws-hover); }
+.ws-btn:active { transform: translateY(1px); }
+.ws-btn--primary { background: var(--ws-accent); color: var(--ws-text-invert); border-color: transparent; }
+.ws-btn--primary:hover { background: var(--ws-accent-2); }
+.ws-btn--edit   { background: rgba(59,130,246,.16); border-color: rgba(59,130,246,.4); color: #cfe1ff; }
+.ws-btn--edit:hover   { background: rgba(59,130,246,.28); }
+.ws-btn--delete { background: rgba(239,68,68,.14); border-color: rgba(239,68,68,.4); color: #ffd2d2; }
+.ws-btn--delete:hover { background: rgba(239,68,68,.26); }
+
+.ws-card {
+    background: var(--ws-surface);
+    border: 1px solid var(--ws-border);
+    border-radius: var(--ws-radius);
+    box-shadow: var(--ws-shadow-1);
+    overflow: hidden;
+}
+
+.ws-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+.ws-table thead th {
+    position: sticky; top: 0; z-index: 2;
+    text-align: left; font-size: var(--ws-fs-xs); font-weight: 700;
+    letter-spacing: .12em; text-transform: uppercase; color: var(--ws-text-dim);
+    background: var(--ws-surface-2);
+    padding: 11px var(--ws-sp-4); border-bottom: 1px solid var(--ws-border);
+    white-space: nowrap; user-select: none; cursor: pointer;
+}
+.ws-table thead th:hover { color: var(--ws-text); }
+.ws-table th .ws-sort { margin-left: 6px; color: var(--ws-accent); opacity: 0; }
+.ws-table th.is-sorted .ws-sort { opacity: 1; }
+
+.ws-table tbody td { padding: 11px var(--ws-sp-4); border-bottom: 1px solid var(--ws-border-soft); color: var(--ws-text); }
+.ws-table tbody tr { transition: background var(--ws-dur); }
+.ws-table tbody tr:hover { background: var(--ws-hover); }
+.ws-table tbody tr.is-selected { background: var(--ws-accent-soft); box-shadow: inset 2px 0 0 var(--ws-accent); }
+.ws-table tbody tr:last-child td { border-bottom: 0; }
+.ws-col--center { text-align: center; }
+.ws-cell-name { font-weight: 600; }
+.ws-cell-host { color: var(--ws-text-muted); font-variant-numeric: tabular-nums; }
+.ws-chip { display:inline-block; padding:2px 8px; border-radius: var(--ws-radius-pill); background: rgba(255,255,255,.06); color: var(--ws-text-muted); font-size: var(--ws-fs-xs); font-weight:700; letter-spacing:.04em; }
+
+/* ---- 상태 배지 ---- */
+.ws-status { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; }
+.ws-status__dot { width: 9px; height: 9px; border-radius: 50%; flex: 0 0 auto; }
+.ws-status--active   { color: var(--ws-success); }
+.ws-status--active   .ws-status__dot { background: var(--ws-success); box-shadow: 0 0 0 3px rgba(55,209,90,.18); }
+.ws-status--inactive { color: var(--ws-text-dim); }
+.ws-status--inactive .ws-status__dot { background: var(--ws-neutral); }
+
+/* 설정(톱니) */
+.ws-gear {
+    width: 30px; height: 30px; border: 1px solid var(--ws-border); border-radius: var(--ws-radius-sm);
+    background: var(--ws-surface-2); color: var(--ws-text-muted);
+    display: inline-grid; place-items: center; transition: background var(--ws-dur), color var(--ws-dur);
+}
+.ws-gear:hover:not(:disabled) { background: var(--ws-hover); color: var(--ws-text); }
+.ws-gear:disabled { opacity: .35; cursor: default; }
+
+/* ---- 빈 상태 ---- */
+.ws-empty {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: var(--ws-sp-3); padding: 56px 24px; color: var(--ws-text-dim); text-align: center;
+}
+.ws-empty__icon {
+    width: 56px; height: 56px; border-radius: 16px; display: grid; place-items: center;
+    background: var(--ws-surface-2); border: 1px solid var(--ws-border); color: var(--ws-text-muted);
+}
+.ws-empty__title { color: var(--ws-text-muted); font-weight: 650; }
+.ws-empty__desc { font-size: var(--ws-fs-sm); }
+
+/* ---- 드롭다운 메뉴 ---- */
+.ws-menu {
+    position: absolute; min-width: 200px; padding: 6px;
+    background: var(--ws-surface); border: 1px solid var(--ws-border);
+    border-radius: var(--ws-radius); box-shadow: var(--ws-shadow-2); z-index: var(--ws-z-menu);
+}
+.ws-menu__item { display: flex; align-items: center; gap: var(--ws-sp-2); padding: 9px 10px; border-radius: var(--ws-radius-sm); color: var(--ws-text); }
+.ws-menu__item:hover { background: var(--ws-hover); }
+.ws-menu__item .ws-ico { color: var(--ws-text-muted); }
+
+/* ---- 모달 / 토스트 (기본만; 추후 확장) ---- */
+.ws-modal-backdrop { position: fixed; inset: 0; background: rgba(4,8,12,.55); display: grid; place-items: center; z-index: var(--ws-z-modal); }
+.ws-modal { width: min(520px, 92vw); background: var(--ws-surface); border: 1px solid var(--ws-border); border-radius: var(--ws-radius-lg); box-shadow: var(--ws-shadow-2); overflow: hidden; }
+.ws-modal__header { padding: var(--ws-sp-4); font-weight: 700; border-bottom: 1px solid var(--ws-border); }
+.ws-modal__body { padding: var(--ws-sp-4); display: grid; gap: var(--ws-sp-3); }
+.ws-modal__footer { padding: var(--ws-sp-3) var(--ws-sp-4); display: flex; gap: var(--ws-sp-2); justify-content: flex-end; border-top: 1px solid var(--ws-border); }
+.ws-toast { position: fixed; bottom: 26px; left: 50%; transform: translateX(-50%); background: #0b1320ee; border: 1px solid var(--ws-border); color: #fff; padding: 10px 16px; border-radius: var(--ws-radius-pill); z-index: var(--ws-z-toast); box-shadow: var(--ws-shadow-2); }
+
+/************************************************************************
+ * styles/responsive.css — 데스크톱(접이식) / 태블릿(드로어) / 모바일(카드)
+ ************************************************************************/
+
+/* 태블릿 이하: 좌측 트리는 오버레이 드로어 */
+@media (max-width: 1024px) {
+    .ws-body { grid-template-columns: 1fr !important; }
+    .ws-pane--tree {
+        position: absolute; top: 0; bottom: 0; left: 0;
+        width: min(300px, 84vw); z-index: var(--ws-z-drawer);
+        transform: translateX(-100%);
+        transition: transform var(--ws-dur) var(--ws-ease);
+        box-shadow: var(--ws-shadow-2);
+    }
+    .ws-shell.is-tree-open .ws-pane--tree { transform: translateX(0); }
+    .ws-shell.is-tree-open .ws-backdrop { opacity: 1; pointer-events: auto; }
+}
+
+/* 모바일: 테이블 → 카드 */
+@media (max-width: 720px) {
+    .ws-table-wrap { padding: var(--ws-sp-2); }
+    .ws-table, .ws-table thead, .ws-table tbody, .ws-table tr, .ws-table th, .ws-table td { display: block; }
+    .ws-table thead { display: none; }
+    .ws-card { background: transparent; border: 0; box-shadow: none; }
+    .ws-table tbody tr {
+        background: var(--ws-surface); border: 1px solid var(--ws-border);
+        border-radius: var(--ws-radius); margin-bottom: var(--ws-sp-3); padding: 6px 4px;
+        box-shadow: var(--ws-shadow-1);
+    }
+    .ws-table tbody tr.is-selected { box-shadow: inset 0 0 0 1px var(--ws-accent); }
+    .ws-table tbody td { border: 0 !important; display: flex; align-items: center; justify-content: space-between; gap: var(--ws-sp-3); padding: 8px var(--ws-sp-3); }
+    .ws-table tbody td::before {
+        content: attr(data-label); color: var(--ws-text-dim);
+        font-size: var(--ws-fs-xs); font-weight: 700; letter-spacing: .1em; text-transform: uppercase;
+    }
+    .ws-col--center { justify-content: space-between; text-align: left; }
+}
+
+html,body{overflow:auto}</style></head>
+<body>
+<div id="app">
+  <div class="ws-shell">
+    <div class="ws-header">
+      <button class="ws-iconbtn"><svg class="ws-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+      <div class="ws-brand"><span class="ws-brand__logo">WS</span><span>U4A Workspace</span></div>
+      <span class="ws-header__spacer"></span>
+      <div class="ws-winbtns">
+        <button class="ws-iconbtn"><svg class="ws-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg></button>
+        <button class="ws-iconbtn"><svg class="ws-ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="5" width="14" height="14" rx="2"/></svg></button>
+        <button class="ws-iconbtn ws-iconbtn--close"><svg class="ws-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      </div>
+    </div>
+    <div class="ws-subheader">
+      <span class="ws-subheader__title">U4A Workspace Logon Pad</span>
+      <span class="ws-actions"><button class="ws-iconbtn"><svg class="ws-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.4-2.3 1a7 7 0 0 0-2-1.2L14 2h-4l-.6 2.7a7 7 0 0 0-2 1.2l-2.3-1-2 3.4 2 1.5A7 7 0 0 0 5 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.4 2.3-1c.6.5 1.3.9 2 1.2L10 22h4l.6-2.7c.7-.3 1.4-.7 2-1.2l2.3 1 2-3.4-2-1.5c.1-.4.1-.8.1-1.2Z"/></svg></button></span>
+    </div>
+    <div class="ws-body">
+      <aside class="ws-pane ws-pane--tree">
+        <div class="ws-side-head"><svg class="ws-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></svg><span>Workspace</span></div>
+        <div style="flex:1;overflow:auto">
+          <div class="ws-tree"><ul class="ws-tree__children">
+            <li><div class="ws-tree__node is-open"><span class="ws-tree__toggle"><svg class="ws-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></span><span class="ws-tree__ico"><svg class="ws-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></svg></span><span>Workspace</span></div>
+              <ul class="ws-tree__children">
+                <li><div class="ws-tree__node is-selected"><span class="ws-tree__toggle"></span><span class="ws-tree__ico"><svg class="ws-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></svg></span><span>Local</span></div></li>
+              </ul>
+            </li>
+          </ul></div>
+        </div>
+      </aside>
+      <section class="ws-pane ws-pane--main">
+        <div class="ws-table-wrap">
+          <div class="ws-table-toolbar">
+            <span class="ws-table-toolbar__title">Servers</span><span class="ws-chip">5</span>
+            <span class="ws-table-toolbar__spacer"></span>
+            <button class="ws-btn ws-btn--edit"><svg class="ws-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4l10-10-4-4L4 16Z"/><path d="M13.5 6.5l4 4"/></svg><span>Edit</span></button>
+            <button class="ws-btn ws-btn--delete"><svg class="ws-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"/></svg><span>Delete</span></button>
+          </div>
+          <div class="ws-card"><table class="ws-table"><thead><tr><th class="">STATUS</th><th class="">SERVER NAME</th><th class="ws-col--center">SID</th><th class="">HOST(Or IP)</th><th class="ws-col--center">SNO</th><th class="ws-col--center">Settings</th></tr></thead><tbody><tr><td data-label="STATUS" class=""><span class="ws-status ws-status--active"><span class="ws-status__dot"></span>Active</span></td><td data-label="SERVER NAME" class=""><span class="ws-cell-name">1. [UHA] U4A 개발 서버</span></td><td data-label="SID" class="ws-col--center"><span class="ws-chip">UHA</span></td><td data-label="HOST(Or IP)" class=""><span class="ws-cell-host">27.102.205.26</span></td><td data-label="SNO" class="ws-col--center">00</td><td data-label="Settings" class="ws-col--center"><button class="ws-gear" ><svg class="ws-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.4-2.3 1a7 7 0 0 0-2-1.2L14 2h-4l-.6 2.7a7 7 0 0 0-2 1.2l-2.3-1-2 3.4 2 1.5A7 7 0 0 0 5 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.4 2.3-1c.6.5 1.3.9 2 1.2L10 22h4l.6-2.7c.7-.3 1.4-.7 2-1.2l2.3 1 2-3.4-2-1.5c.1-.4.1-.8.1-1.2Z"/></svg></button></td></tr><tr><td data-label="STATUS" class=""><span class="ws-status ws-status--active"><span class="ws-status__dot"></span>Active</span></td><td data-label="SERVER NAME" class=""><span class="ws-cell-name">2. [U4A] U4A 운영서버</span></td><td data-label="SID" class="ws-col--center"><span class="ws-chip">U4A</span></td><td data-label="HOST(Or IP)" class=""><span class="ws-cell-host">27.102.205.25</span></td><td data-label="SNO" class="ws-col--center">00</td><td data-label="Settings" class="ws-col--center"><button class="ws-gear" ><svg class="ws-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.4-2.3 1a7 7 0 0 0-2-1.2L14 2h-4l-.6 2.7a7 7 0 0 0-2 1.2l-2.3-1-2 3.4 2 1.5A7 7 0 0 0 5 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.4 2.3-1c.6.5 1.3.9 2 1.2L10 22h4l.6-2.7c.7-.3 1.4-.7 2-1.2l2.3 1 2-3.4-2-1.5c.1-.4.1-.8.1-1.2Z"/></svg></button></td></tr><tr><td data-label="STATUS" class=""><span class="ws-status ws-status--active"><span class="ws-status__dot"></span>Active</span></td><td data-label="SERVER NAME" class=""><span class="ws-cell-name">3. [U4E] U4A 교육서버</span></td><td data-label="SID" class="ws-col--center"><span class="ws-chip">U4E</span></td><td data-label="HOST(Or IP)" class=""><span class="ws-cell-host">211.218.126.186</span></td><td data-label="SNO" class="ws-col--center">00</td><td data-label="Settings" class="ws-col--center"><button class="ws-gear" ><svg class="ws-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.4-2.3 1a7 7 0 0 0-2-1.2L14 2h-4l-.6 2.7a7 7 0 0 0-2 1.2l-2.3-1-2 3.4 2 1.5A7 7 0 0 0 5 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.4 2.3-1c.6.5 1.3.9 2 1.2L10 22h4l.6-2.7c.7-.3 1.4-.7 2-1.2l2.3 1 2-3.4-2-1.5c.1-.4.1-.8.1-1.2Z"/></svg></button></td></tr><tr><td data-label="STATUS" class=""><span class="ws-status ws-status--inactive"><span class="ws-status__dot"></span>Inactive</span></td><td data-label="SERVER NAME" class=""><span class="ws-cell-name">4. [U41] U4A 2.0 서버</span></td><td data-label="SID" class="ws-col--center"><span class="ws-chip">U41</span></td><td data-label="HOST(Or IP)" class=""><span class="ws-cell-host">192.168.0.28</span></td><td data-label="SNO" class="ws-col--center">00</td><td data-label="Settings" class="ws-col--center"><button class="ws-gear" disabled><svg class="ws-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.4-2.3 1a7 7 0 0 0-2-1.2L14 2h-4l-.6 2.7a7 7 0 0 0-2 1.2l-2.3-1-2 3.4 2 1.5A7 7 0 0 0 5 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.4 2.3-1c.6.5 1.3.9 2 1.2L10 22h4l.6-2.7c.7-.3 1.4-.7 2-1.2l2.3 1 2-3.4-2-1.5c.1-.4.1-.8.1-1.2Z"/></svg></button></td></tr><tr><td data-label="STATUS" class=""><span class="ws-status ws-status--inactive"><span class="ws-status__dot"></span>Inactive</span></td><td data-label="SERVER NAME" class=""><span class="ws-cell-name">5. [U42] U4A WS 2.5 서버</span></td><td data-label="SID" class="ws-col--center"><span class="ws-chip">U42</span></td><td data-label="HOST(Or IP)" class=""><span class="ws-cell-host">192.168.0.28</span></td><td data-label="SNO" class="ws-col--center">10</td><td data-label="Settings" class="ws-col--center"><button class="ws-gear" disabled><svg class="ws-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.4-2.3 1a7 7 0 0 0-2-1.2L14 2h-4l-.6 2.7a7 7 0 0 0-2 1.2l-2.3-1-2 3.4 2 1.5A7 7 0 0 0 5 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.4 2.3-1c.6.5 1.3.9 2 1.2L10 22h4l.6-2.7c.7-.3 1.4-.7 2-1.2l2.3 1 2-3.4-2-1.5c.1-.4.1-.8.1-1.2Z"/></svg></button></td></tr></tbody></table></div>
+        </div>
+      </section>
+    </div>
+  </div>
+</div></body></html>

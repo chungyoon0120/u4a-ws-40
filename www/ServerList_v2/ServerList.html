@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title data-i18n="app_title">U4A Workspace Logon Pad</title>
+    <!-- U4A Workspace 공용 로고 — 모든 새창/모달도 이 경로(../img/logo.*)만 바라봄 -->
+    <link rel="icon" type="image/x-icon" href="../img/logo.ico" />
+    <link rel="shortcut icon" type="image/x-icon" href="../img/logo.ico" />
+    <link rel="stylesheet" href="./css/serverlist.css" />
+    <script>
+        // FOUC 방지: CSS 로드 전 저장된 테마를 즉시 html[data-theme] 에 적용
+        (function () {
+            try {
+                var v = localStorage.getItem("u4a-ws-theme-v1");
+                document.documentElement.setAttribute("data-theme", (v === "dark" || v === "white" || v === "purple") ? v : "purple");
+            } catch (_) { document.documentElement.setAttribute("data-theme", "purple"); }
+        })();
+    </script>
+</head>
+
+<body>
+
+    <!-- 앱 셸 (배경/그리드 오버레이는 CSS) -->
+    <div class="ws-app">
+
+        <!-- 타이틀바 (드래그) -->
+        <div class="ws-titlebar">
+            <div class="ws-titlebar__brand">
+                <img class="ws-brand-mark" src="../img/logo.png" alt="U4A Workspace" draggable="false"
+                     onerror="this.onerror=null;this.classList.add('is-fallback');this.removeAttribute('src');" />
+                <span class="ws-titlebar__text" data-i18n="brand">U4A Workspace</span>
+            </div>
+            <div class="ws-winbtns">
+                <button id="ws-win-min" class="ws-winbtn" data-i18n-title="win_min" title="Minimize">&#8211;</button>
+                <button id="ws-win-max" class="ws-winbtn" data-i18n-title="win_max" title="Maximize">&#9633;</button>
+                <button id="ws-win-close" class="ws-winbtn close" data-i18n-title="win_close" title="Close">&#10005;</button>
+            </div>
+        </div>
+
+        <!-- 로그온 헤더 -->
+        <header class="ws-header">
+            <div class="ws-header__title">
+                <h1 data-i18n="app_title">U4A Workspace Logon Pad</h1>
+                <span data-i18n="app_subtitle">Select a workspace and open the SAP server connection.</span>
+            </div>
+            <div class="ws-header__actions">
+                <button id="ws-refresh" class="ws-btn ws-btn--primary"><span class="ws-refresh-icon">↻</span> <span data-i18n="btn_refresh">Refresh</span></button>
+                <div class="ws-menu-wrap">
+                    <button id="ws-settings-btn" class="ws-btn ws-btn--icon" data-i18n-title="btn_settings" title="Settings">⚙</button>
+                    <div id="ws-settings-menu" class="ws-menu is-hidden"></div>
+                </div>
+            </div>
+        </header>
+
+        <!-- 본문: 워크스페이스 패널 + splitter + 서버 패널 -->
+        <main class="ws-main" id="ws-main">
+            <aside class="ws-panel ws-panel--tree">
+                <div class="ws-panel-head">
+                    <div>
+                        <div class="ws-panel-title" data-i18n="panel_workspace">Workspace</div>
+                        <div class="ws-panel-sub" data-i18n="panel_workspace_sub">SAP Logon folders</div>
+                    </div>
+                </div>
+                <div id="ws-tree" class="ws-tree-scroll"></div>
+            </aside>
+
+            <div class="ws-splitter" id="ws-splitter" data-i18n-title="splitter_tip" title="Drag to resize (double-click = default)"><span class="ws-splitter__grip"></span></div>
+
+            <section class="ws-panel ws-panel--server">
+                <div class="ws-panel-head">
+                    <div>
+                        <div class="ws-panel-title" data-i18n="panel_servers">Server List</div>
+                        <div class="ws-panel-sub" data-i18n="panel_servers_sub">Available SAP systems</div>
+                    </div>
+                    <span id="ws-server-count" class="ws-count">0</span>
+                </div>
+                <div class="ws-toolbar">
+                    <div class="ws-search">
+                        <input id="ws-search-input" type="text" data-i18n-ph="search_placeholder" placeholder="Search server name, SID, host..." />
+                    </div>
+                </div>
+                <div id="ws-server-table" class="ws-table-host"></div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Busy -->
+    <div id="u4aWsBusyIndicator" class="ws-busy is-hidden">
+        <div class="ws-busy__box">
+            <div class="ws-busy__orb"></div>
+            <div class="ws-busy__title" data-i18n="loading_title">Loading...</div>
+            <div class="ws-busy__desc" data-i18n="loading_desc">Please wait a moment.</div>
+        </div>
+    </div>
+
+    <div id="ws-toast-root" class="ws-toast-root"></div>
+    <audio id="u4aWsAudio"></audio>
+
+    <script src="./js/serverlist.data.js"></script>
+    <script src="./js/serverlist.ui.js"></script>
+</body>
+
+</html>

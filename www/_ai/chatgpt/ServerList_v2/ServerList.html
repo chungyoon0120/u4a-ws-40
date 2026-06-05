@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>U4A Workspace Logon Pad</title>
+
+    <link rel="stylesheet" href="./css/ServerList.css" />
+    <link rel="stylesheet" href="./css/ServerInfo.css" />
+    <link rel="stylesheet" href="./css/Tree.css" />
+    <link rel="stylesheet" href="./css/Table.css" />
+    <link rel="stylesheet" href="./css/Dialog.css" />
+    <link rel="stylesheet" href="./css/Responsive.css" />
+</head>
+<body>
+    <div id="content"></div>
+
+    <div id="u4aWsBusyIndicator" class="u4a-busy-layer is-hidden">
+        <div class="u4a-busy-box">
+            <div class="u4a-busy-orb"></div>
+            <div class="u4a-busy-title">Loading...</div>
+            <div class="u4a-busy-desc">Please wait a moment.</div>
+        </div>
+    </div>
+
+    <div id="u4aWsDialogRoot"></div>
+    <div id="u4aWsToastRoot" class="u4a-toast-root"></div>
+    <audio id="u4aWsAudio"></audio>
+
+    <script src="./ServerList.js"></script>
+
+    <script src="./js/common/util.js"></script>
+    <script src="./js/common/busy.js"></script>
+    <script src="./js/common/message.js"></script>
+    <script src="./js/common/sound.js"></script>
+    <script src="./js/common/storage.js"></script>
+
+    <script src="./js/saplogon/saplogon.js"></script>
+    <script src="./js/saplogon/landscape.js"></script>
+    <script src="./js/saplogon/workspace.js"></script>
+    <script src="./js/saplogon/sapgui.js"></script>
+
+    <script src="./js/server/serverList.js"></script>
+    <script src="./js/server/serverSave.js"></script>
+    <script src="./js/server/serverSetting.js"></script>
+    <script src="./js/server/login.js"></script>
+
+    <script src="./js/ui/layout.js"></script>
+    <script src="./js/ui/titlebar.js"></script>
+    <script src="./js/ui/workspaceTree.js"></script>
+    <script src="./js/ui/serverTable.js"></script>
+    <script src="./js/ui/settingMenu.js"></script>
+
+    <script src="./js/dialog/editServerDialog.js"></script>
+    <script src="./js/dialog/languageDialog.js"></script>
+    <script src="./js/dialog/themeDialog.js"></script>
+    <script src="./js/dialog/soundDialog.js"></script>
+    <script src="./js/dialog/aboutDialog.js"></script>
+
+    <script src="./js/pipe/pipeServer.js"></script>
+    <script src="./js/pipe/pipeOpenServer.js"></script>
+
+    <script src="./js/bootstrap/bootstrap.js"></script>
+</body>
+</html>

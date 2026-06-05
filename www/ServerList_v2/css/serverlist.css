@@ -1,0 +1,607 @@
+/* ===== U4A Workspace — ServerList 스타일 (멀티 테마)
+   테마: data-theme="purple"(기본) | "dark" | "white"
+   ===== */
+
+/* ---------- 1) 테마 토큰 ---------- */
+:root, [data-theme="purple"] {
+    --u4a-titlebar-h:34px; --u4a-header-h:72px; --u4a-radius:18px;
+    --ws-tree-w:200px; --ws-dur:.2s; --ws-ease:cubic-bezier(.22,.61,.36,1);
+    --u4a-shadow:0 24px 80px rgba(0,0,0,.42);
+
+    --u4a-bg:#0f0818;
+    --u4a-bg-grad:radial-gradient(circle at 8% 0%,rgba(236,72,153,.22),transparent 28%),radial-gradient(circle at 92% 8%,rgba(168,85,247,.16),transparent 32%),linear-gradient(145deg,#0f0818 0%,#160c22 48%,#0a0612 100%);
+    --u4a-grid:rgba(255,255,255,.035); --u4a-grid-2:rgba(255,255,255,.025); --u4a-grid-opacity:.45;
+
+    --u4a-panel:rgba(30,20,42,.9);
+    --u4a-panel-overlay:linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,.012));
+    --u4a-panel-head-bg:linear-gradient(90deg,rgba(236,72,153,.10),transparent),rgba(255,255,255,.028);
+
+    --u4a-line:rgba(216,180,254,.16); --u4a-line-strong:rgba(216,180,254,.26);
+
+    --u4a-text:#f5e7ff; --u4a-text-soft:#cdb5e6; --u4a-text-dim:#8a7aa0; --u4a-text-strong:#fbf0ff;
+
+    --u4a-accent:#ec4899; --u4a-accent-2:#a855f7;
+    --u4a-accent-grad:linear-gradient(135deg,#ec4899,#a855f7);
+    --u4a-accent-glow:rgba(236,72,153,.55); --u4a-accent-text:#ffd2ea;
+
+    --u4a-danger:#ef4444; --u4a-success:#34d399;
+    --u4a-success-glow:0 0 10px rgba(52,211,153,.9),0 0 22px rgba(52,211,153,.30);
+    --u4a-success-text:#d4ffe9; --u4a-inactive-dot:#8a7aa0; --u4a-inactive-text:#b4a4c4;
+    --u4a-warning:#fbbf24; --u4a-warning-stroke:rgba(180,120,20,.5);
+    --u4a-warning-shadow-filter:drop-shadow(0 0 6px rgba(251,191,36,.22));
+
+    --u4a-titlebar-bg:rgba(15,8,24,.74); --u4a-titlebar-border:rgba(255,255,255,.055);
+    --u4a-titlebar-text:#f4e8ff; --u4a-titlebar-blur:blur(10px);
+    --u4a-winbtn:#e0cef2; --u4a-winbtn-hover-bg:rgba(255,255,255,.08);
+    --u4a-winbtn-hover-text:#fff; --u4a-winbtn-close-hover-bg:#d83b3b;
+    --u4a-brand-glow:0 0 18px rgba(236,72,153,.65),inset 0 1px 0 rgba(255,255,255,.45);
+
+    --u4a-header-h1:#fbf0ff; --u4a-header-h1-shadow:0 0 22px rgba(236,72,153,.24);
+    --u4a-header-sub:#c8a8e0;
+
+    --u4a-btn-bg:rgba(255,255,255,.045); --u4a-btn-bg-hover:rgba(255,255,255,.085);
+    --u4a-btn-border-hover:rgba(168,85,247,.48);
+    --u4a-btn-primary-bg:linear-gradient(180deg,rgba(236,72,153,.26),rgba(168,85,247,.14));
+    --u4a-btn-primary-border:rgba(236,72,153,.5);
+    --u4a-btn-primary-shadow:0 10px 26px rgba(236,72,153,.18);
+    --u4a-btn-primary-bg-hover:linear-gradient(180deg,rgba(236,72,153,.34),rgba(168,85,247,.20));
+    --u4a-btn-primary-border-hover:rgba(244,114,182,.65);
+    --u4a-btn-primary-shadow-hover:0 12px 30px rgba(236,72,153,.26);
+    --u4a-btn-ghost-bg:rgba(255,255,255,.04);
+
+    --u4a-menu-bg:rgba(28,18,40,.98); --u4a-menu-item-hover:rgba(255,255,255,.07);
+
+    --u4a-count-bg:rgba(236,72,153,.18); --u4a-count-border:rgba(236,72,153,.40); --u4a-count-text:#ffd2ea;
+
+    --u4a-splitter:rgba(216,180,254,.4); --u4a-splitter-active:linear-gradient(180deg,#ec4899,#a855f7);
+
+    --u4a-tree-toggle:#c8a8e0;
+    --u4a-tree-hover-bg:rgba(255,255,255,.055); --u4a-tree-hover-border:rgba(255,255,255,.055);
+    --u4a-tree-selected-bg:linear-gradient(90deg,rgba(236,72,153,.24),rgba(168,85,247,.08));
+    --u4a-tree-selected-border:rgba(236,72,153,.22);
+    --u4a-tree-selected-text:#fff; --u4a-tree-selected-bar:#a855f7;
+
+    --u4a-toolbar-bg:rgba(12,6,20,.22);
+    --u4a-input-bg:rgba(10,5,18,.5); --u4a-input-bg-focus:rgba(14,7,22,.7);
+    --u4a-input-placeholder:#9885a8;
+    --u4a-input-focus-border:rgba(236,72,153,.58); --u4a-input-focus-ring:0 0 0 3px rgba(236,72,153,.14);
+    --u4a-input-invalid-border:rgba(239,68,68,.7); --u4a-input-invalid-ring:0 0 0 3px rgba(239,68,68,.18);
+    --u4a-select-arrow:#cdb5e6; --u4a-option-bg:#1c1228;
+
+    --u4a-pin-bg:rgba(236,72,153,.10); --u4a-pin-text:#ffd2ea;
+    --u4a-pin-hover-bg:rgba(236,72,153,.18); --u4a-pin-hover-border:rgba(236,72,153,.50);
+    --u4a-pin-hover-shadow:0 0 0 3px rgba(236,72,153,.10); --u4a-pin-x-hover:rgba(236,72,153,.22);
+
+    --u4a-table-bg:linear-gradient(180deg,rgba(255,255,255,.012),transparent),rgba(15,8,24,.18);
+    --u4a-table-th-bg:linear-gradient(180deg,rgba(42,26,60,.98),rgba(32,20,46,.98));
+    --u4a-table-th-text:#c8a8e0;
+    --u4a-table-th-hover-bg:linear-gradient(180deg,rgba(52,32,72,.98),rgba(40,24,58,.98));
+    --u4a-table-th-hover-text:#fbf0ff; --u4a-table-th-sorted-text:#ffd2ea;
+    --u4a-table-td-text:#f4e8ff; --u4a-table-td-border:rgba(216,180,254,.11);
+    --u4a-table-row-hover-bg:rgba(236,72,153,.08); --u4a-table-row-selected-bg:rgba(168,85,247,.10);
+
+    --u4a-chip-bg:rgba(255,255,255,.06); --u4a-chip-text:#e2cef0;
+
+    --u4a-row-btn-bg:rgba(255,255,255,.045);
+    --u4a-row-btn-hover-bg:rgba(236,72,153,.14); --u4a-row-btn-hover-border:rgba(236,72,153,.45);
+    --u4a-row-btn-danger-hover-bg:rgba(239,68,68,.16); --u4a-row-btn-danger-hover-border:rgba(239,68,68,.55);
+
+    --u4a-card-bg:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.01));
+    --u4a-card-selected-bg:rgba(168,85,247,.08); --u4a-card-selected-border:rgba(236,72,153,.32);
+
+    --u4a-busy-backdrop:rgba(8,4,14,.55); --u4a-busy-box:rgba(28,18,40,.96);
+    --u4a-busy-shadow:0 24px 80px rgba(0,0,0,.48);
+    --u4a-busy-orb-shadow:0 0 22px rgba(236,72,153,.58),0 0 38px rgba(168,85,247,.34);
+
+    --u4a-toast-bg:rgba(28,18,40,.98); --u4a-toast-shadow:0 18px 60px rgba(0,0,0,.4);
+
+    --u4a-tip-bg:rgba(28,18,40,.98); --u4a-tip-shadow:0 8px 24px rgba(0,0,0,.5),0 0 0 1px rgba(236,72,153,.10);
+
+    --u4a-modal-backdrop:rgba(8,4,14,.55); --u4a-modal-bg:rgba(28,18,40,.96);
+    --u4a-modal-overlay:linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,.012));
+    --u4a-modal-shadow:0 30px 80px rgba(0,0,0,.55),0 0 0 1px rgba(236,72,153,.10);
+    --u4a-modal-head-bg:linear-gradient(90deg,rgba(236,72,153,.18),rgba(168,85,247,.08));
+    --u4a-modal-foot-bg:rgba(15,8,24,.4);
+    --u4a-field-label:#d4bce8;
+    --u4a-check-bg:rgba(10,5,18,.5); --u4a-check-hover-border:rgba(236,72,153,.45);
+    --u4a-check-on-border:rgba(236,72,153,.6); --u4a-check-on-shadow:0 0 10px rgba(236,72,153,.40);
+    --u4a-fab-cancel-bg:linear-gradient(135deg,#ef4444,#b91c1c);
+    --u4a-fab-cancel-shadow:0 8px 22px rgba(239,68,68,.30);
+
+    --u4a-scroll-track:rgba(255,255,255,.035);
+    --u4a-scroll-thumb:linear-gradient(180deg,rgba(236,72,153,.72),rgba(168,85,247,.62));
+    --u4a-scroll-thumb-hover:linear-gradient(180deg,rgba(244,114,182,.92),rgba(192,132,252,.82));
+    --u4a-scroll-thumb-border:rgba(17,9,26,.9);
+    --u4a-scroll-firefox:rgba(168,85,247,.55);
+}
+
+[data-theme="dark"] {
+    --u4a-shadow:0 24px 80px rgba(0,0,0,.36);
+
+    --u4a-bg:#0b1118;
+    --u4a-bg-grad:radial-gradient(circle at 8% 0%,rgba(53,167,255,.22),transparent 28%),radial-gradient(circle at 92% 8%,rgba(124,247,212,.13),transparent 30%),linear-gradient(145deg,#0b1118 0%,#101921 48%,#0a0f15 100%);
+    --u4a-grid:rgba(255,255,255,.035); --u4a-grid-2:rgba(255,255,255,.025); --u4a-grid-opacity:.45;
+
+    --u4a-panel:rgba(20,29,39,.9);
+    --u4a-panel-overlay:linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,.012));
+    --u4a-panel-head-bg:linear-gradient(90deg,rgba(53,167,255,.10),transparent),rgba(255,255,255,.028);
+
+    --u4a-line:rgba(255,255,255,.07); --u4a-line-strong:rgba(255,255,255,.11);
+
+    --u4a-text:#eef6ff; --u4a-text-soft:#a9bbcf; --u4a-text-dim:#73869c; --u4a-text-strong:#f0f7ff;
+
+    --u4a-accent:#35a7ff; --u4a-accent-2:#7cf7d4;
+    --u4a-accent-grad:linear-gradient(135deg,#35a7ff,#7cf7d4);
+    --u4a-accent-glow:rgba(53,167,255,.55); --u4a-accent-text:#cce6ff;
+
+    --u4a-danger:#ff5d6c; --u4a-success:#53e6a5;
+    --u4a-success-glow:0 0 10px rgba(83,230,165,.85),0 0 22px rgba(83,230,165,.28);
+    --u4a-success-text:#d4ffe9; --u4a-inactive-dot:#73869c; --u4a-inactive-text:#a9bbcf;
+    --u4a-warning:#ffd34e; --u4a-warning-stroke:rgba(180,120,20,.5);
+    --u4a-warning-shadow-filter:drop-shadow(0 0 6px rgba(255,211,78,.22));
+
+    --u4a-titlebar-bg:rgba(10,16,23,.74); --u4a-titlebar-border:rgba(255,255,255,.055);
+    --u4a-titlebar-text:#eaf1f8; --u4a-titlebar-blur:blur(10px);
+    --u4a-winbtn:#cbd6e1; --u4a-winbtn-hover-bg:rgba(255,255,255,.08);
+    --u4a-winbtn-hover-text:#fff; --u4a-winbtn-close-hover-bg:#d83b3b;
+    --u4a-brand-glow:0 0 18px rgba(53,167,255,.65),inset 0 1px 0 rgba(255,255,255,.45);
+
+    --u4a-header-h1:#f0f7ff; --u4a-header-h1-shadow:0 0 22px rgba(53,167,255,.20);
+    --u4a-header-sub:#a9bbcf;
+
+    --u4a-btn-bg:rgba(255,255,255,.045); --u4a-btn-bg-hover:rgba(255,255,255,.085);
+    --u4a-btn-border-hover:rgba(124,247,212,.48);
+    --u4a-btn-primary-bg:linear-gradient(180deg,rgba(53,167,255,.26),rgba(124,247,212,.12));
+    --u4a-btn-primary-border:rgba(53,167,255,.5);
+    --u4a-btn-primary-shadow:0 10px 26px rgba(53,167,255,.18);
+    --u4a-btn-primary-bg-hover:linear-gradient(180deg,rgba(53,167,255,.34),rgba(124,247,212,.18));
+    --u4a-btn-primary-border-hover:rgba(96,190,255,.65);
+    --u4a-btn-primary-shadow-hover:0 12px 30px rgba(53,167,255,.26);
+    --u4a-btn-ghost-bg:rgba(255,255,255,.04);
+
+    --u4a-menu-bg:rgba(18,27,37,.98); --u4a-menu-item-hover:rgba(255,255,255,.07);
+
+    --u4a-count-bg:rgba(53,167,255,.18); --u4a-count-border:rgba(53,167,255,.40); --u4a-count-text:#cce6ff;
+
+    --u4a-splitter:rgba(169,187,207,.4); --u4a-splitter-active:linear-gradient(180deg,#35a7ff,#7cf7d4);
+
+    --u4a-tree-toggle:#a9bbcf;
+    --u4a-tree-hover-bg:rgba(255,255,255,.055); --u4a-tree-hover-border:rgba(255,255,255,.055);
+    --u4a-tree-selected-bg:linear-gradient(90deg,rgba(53,167,255,.22),rgba(124,247,212,.06));
+    --u4a-tree-selected-border:rgba(53,167,255,.22);
+    --u4a-tree-selected-text:#fff; --u4a-tree-selected-bar:#7cf7d4;
+
+    --u4a-toolbar-bg:rgba(8,12,18,.22);
+    --u4a-input-bg:rgba(8,14,20,.5); --u4a-input-bg-focus:rgba(10,16,24,.7);
+    --u4a-input-placeholder:#73869c;
+    --u4a-input-focus-border:rgba(53,167,255,.58); --u4a-input-focus-ring:0 0 0 3px rgba(53,167,255,.14);
+    --u4a-input-invalid-border:rgba(255,93,108,.7); --u4a-input-invalid-ring:0 0 0 3px rgba(255,93,108,.18);
+    --u4a-select-arrow:#a9bbcf; --u4a-option-bg:#121b25;
+
+    --u4a-pin-bg:rgba(53,167,255,.10); --u4a-pin-text:#cce6ff;
+    --u4a-pin-hover-bg:rgba(53,167,255,.18); --u4a-pin-hover-border:rgba(53,167,255,.50);
+    --u4a-pin-hover-shadow:0 0 0 3px rgba(53,167,255,.10); --u4a-pin-x-hover:rgba(53,167,255,.22);
+
+    --u4a-table-bg:linear-gradient(180deg,rgba(255,255,255,.012),transparent),rgba(11,17,24,.18);
+    --u4a-table-th-bg:linear-gradient(180deg,rgba(28,41,56,.98),rgba(22,33,45,.98));
+    --u4a-table-th-text:#a9bbcf;
+    --u4a-table-th-hover-bg:linear-gradient(180deg,rgba(36,52,70,.98),rgba(28,41,56,.98));
+    --u4a-table-th-hover-text:#f0f7ff; --u4a-table-th-sorted-text:#cce6ff;
+    --u4a-table-td-text:#eef6ff; --u4a-table-td-border:rgba(255,255,255,.07);
+    --u4a-table-row-hover-bg:rgba(53,167,255,.08); --u4a-table-row-selected-bg:rgba(124,247,212,.07);
+
+    --u4a-chip-bg:rgba(255,255,255,.06); --u4a-chip-text:#d2dde8;
+
+    --u4a-row-btn-bg:rgba(255,255,255,.045);
+    --u4a-row-btn-hover-bg:rgba(53,167,255,.14); --u4a-row-btn-hover-border:rgba(53,167,255,.45);
+    --u4a-row-btn-danger-hover-bg:rgba(255,93,108,.16); --u4a-row-btn-danger-hover-border:rgba(255,93,108,.55);
+
+    --u4a-card-bg:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.01));
+    --u4a-card-selected-bg:rgba(124,247,212,.07); --u4a-card-selected-border:rgba(53,167,255,.32);
+
+    --u4a-busy-backdrop:rgba(4,8,12,.55); --u4a-busy-box:rgba(18,27,37,.96);
+    --u4a-busy-shadow:0 24px 80px rgba(0,0,0,.48);
+    --u4a-busy-orb-shadow:0 0 22px rgba(53,167,255,.58),0 0 38px rgba(124,247,212,.30);
+
+    --u4a-toast-bg:rgba(18,27,37,.98); --u4a-toast-shadow:0 18px 60px rgba(0,0,0,.4);
+
+    --u4a-tip-bg:rgba(18,27,37,.98); --u4a-tip-shadow:0 8px 24px rgba(0,0,0,.5),0 0 0 1px rgba(53,167,255,.10);
+
+    --u4a-modal-backdrop:rgba(4,8,12,.55); --u4a-modal-bg:rgba(18,27,37,.96);
+    --u4a-modal-overlay:linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,.012));
+    --u4a-modal-shadow:0 30px 80px rgba(0,0,0,.55),0 0 0 1px rgba(53,167,255,.10);
+    --u4a-modal-head-bg:linear-gradient(90deg,rgba(53,167,255,.18),rgba(124,247,212,.08));
+    --u4a-modal-foot-bg:rgba(10,16,23,.4);
+    --u4a-field-label:#c0d2e4;
+    --u4a-check-bg:rgba(8,14,20,.5); --u4a-check-hover-border:rgba(53,167,255,.45);
+    --u4a-check-on-border:rgba(53,167,255,.6); --u4a-check-on-shadow:0 0 10px rgba(53,167,255,.40);
+    --u4a-fab-cancel-bg:linear-gradient(135deg,#ff5d6c,#c0303e);
+    --u4a-fab-cancel-shadow:0 8px 22px rgba(255,93,108,.30);
+
+    --u4a-scroll-track:rgba(255,255,255,.035);
+    --u4a-scroll-thumb:linear-gradient(180deg,rgba(53,167,255,.7),rgba(124,247,212,.55));
+    --u4a-scroll-thumb-hover:linear-gradient(180deg,rgba(96,190,255,.9),rgba(150,250,224,.75));
+    --u4a-scroll-thumb-border:rgba(11,17,24,.9);
+    --u4a-scroll-firefox:rgba(53,167,255,.55);
+}
+
+[data-theme="white"] {
+    --u4a-shadow:0 20px 60px rgba(15,23,42,.10);
+
+    --u4a-bg:#eef2f7;
+    --u4a-bg-grad:radial-gradient(circle at 8% 0%,rgba(37,99,235,.10),transparent 28%),radial-gradient(circle at 92% 8%,rgba(6,182,212,.07),transparent 30%),linear-gradient(145deg,#f8fafc 0%,#eef3f9 48%,#e4ebf3 100%);
+    --u4a-grid:rgba(15,23,42,.045); --u4a-grid-2:rgba(15,23,42,.035); --u4a-grid-opacity:.55;
+
+    --u4a-panel:rgba(255,255,255,.92);
+    --u4a-panel-overlay:linear-gradient(180deg,rgba(255,255,255,.85),rgba(255,255,255,.65));
+    --u4a-panel-head-bg:linear-gradient(90deg,rgba(37,99,235,.07),transparent),rgba(15,23,42,.02);
+
+    --u4a-line:rgba(15,23,42,.08); --u4a-line-strong:rgba(15,23,42,.14);
+
+    --u4a-text:#0f172a; --u4a-text-soft:#475569; --u4a-text-dim:#94a3b8; --u4a-text-strong:#0f172a;
+
+    --u4a-accent:#2563eb; --u4a-accent-2:#06b6d4;
+    --u4a-accent-grad:linear-gradient(135deg,#2563eb,#06b6d4);
+    --u4a-accent-glow:rgba(37,99,235,.45); --u4a-accent-text:#1d4ed8;
+
+    --u4a-danger:#e11d48; --u4a-success:#10b981;
+    --u4a-success-glow:0 0 8px rgba(16,185,129,.55),0 0 18px rgba(16,185,129,.22);
+    --u4a-success-text:#047857; --u4a-inactive-dot:#94a3b8; --u4a-inactive-text:#64748b;
+    --u4a-warning:#d97706; --u4a-warning-stroke:rgba(120,75,5,.45);
+    --u4a-warning-shadow-filter:drop-shadow(0 1px 2px rgba(217,119,6,.22));
+
+    --u4a-titlebar-bg:rgba(255,255,255,.72); --u4a-titlebar-border:rgba(15,23,42,.08);
+    --u4a-titlebar-text:#1e293b; --u4a-titlebar-blur:blur(10px);
+    --u4a-winbtn:#475569; --u4a-winbtn-hover-bg:rgba(15,23,42,.06);
+    --u4a-winbtn-hover-text:#0f172a; --u4a-winbtn-close-hover-bg:#dc2626;
+    --u4a-brand-glow:0 0 14px rgba(37,99,235,.42),inset 0 1px 0 rgba(255,255,255,.55);
+
+    --u4a-header-h1:#0f172a; --u4a-header-h1-shadow:0 1px 0 rgba(255,255,255,.6);
+    --u4a-header-sub:#64748b;
+
+    --u4a-btn-bg:rgba(255,255,255,.78); --u4a-btn-bg-hover:#ffffff;
+    --u4a-btn-border-hover:rgba(37,99,235,.40);
+    --u4a-btn-primary-bg:linear-gradient(180deg,rgba(37,99,235,.18),rgba(37,99,235,.08));
+    --u4a-btn-primary-border:rgba(37,99,235,.45);
+    --u4a-btn-primary-shadow:0 8px 22px rgba(37,99,235,.14);
+    --u4a-btn-primary-bg-hover:linear-gradient(180deg,rgba(37,99,235,.26),rgba(37,99,235,.12));
+    --u4a-btn-primary-border-hover:rgba(37,99,235,.6);
+    --u4a-btn-primary-shadow-hover:0 10px 26px rgba(37,99,235,.20);
+    --u4a-btn-ghost-bg:rgba(255,255,255,.5);
+
+    --u4a-menu-bg:rgba(255,255,255,.98); --u4a-menu-item-hover:rgba(15,23,42,.05);
+
+    --u4a-count-bg:rgba(37,99,235,.12); --u4a-count-border:rgba(37,99,235,.30); --u4a-count-text:#1d4ed8;
+
+    --u4a-splitter:rgba(15,23,42,.20); --u4a-splitter-active:linear-gradient(180deg,#2563eb,#06b6d4);
+
+    --u4a-tree-toggle:#64748b;
+    --u4a-tree-hover-bg:rgba(15,23,42,.05); --u4a-tree-hover-border:rgba(15,23,42,.06);
+    --u4a-tree-selected-bg:linear-gradient(90deg,rgba(37,99,235,.16),rgba(37,99,235,.04));
+    --u4a-tree-selected-border:rgba(37,99,235,.22);
+    --u4a-tree-selected-text:#1d4ed8; --u4a-tree-selected-bar:#2563eb;
+
+    --u4a-toolbar-bg:rgba(15,23,42,.02);
+    --u4a-input-bg:rgba(255,255,255,.85); --u4a-input-bg-focus:#ffffff;
+    --u4a-input-placeholder:#94a3b8;
+    --u4a-input-focus-border:rgba(37,99,235,.55); --u4a-input-focus-ring:0 0 0 3px rgba(37,99,235,.14);
+    --u4a-input-invalid-border:rgba(225,29,72,.65); --u4a-input-invalid-ring:0 0 0 3px rgba(225,29,72,.16);
+    --u4a-select-arrow:#475569; --u4a-option-bg:#ffffff;
+
+    --u4a-pin-bg:rgba(37,99,235,.10); --u4a-pin-text:#1d4ed8;
+    --u4a-pin-hover-bg:rgba(37,99,235,.18); --u4a-pin-hover-border:rgba(37,99,235,.50);
+    --u4a-pin-hover-shadow:0 0 0 3px rgba(37,99,235,.10); --u4a-pin-x-hover:rgba(37,99,235,.22);
+
+    --u4a-table-bg:linear-gradient(180deg,rgba(255,255,255,.5),transparent),rgba(255,255,255,.2);
+    --u4a-table-th-bg:linear-gradient(180deg,#f8fafc,#eef2f7);
+    --u4a-table-th-text:#475569;
+    --u4a-table-th-hover-bg:linear-gradient(180deg,#f1f5f9,#e2e8f0);
+    --u4a-table-th-hover-text:#0f172a; --u4a-table-th-sorted-text:#1d4ed8;
+    --u4a-table-td-text:#1e293b; --u4a-table-td-border:rgba(15,23,42,.06);
+    --u4a-table-row-hover-bg:rgba(37,99,235,.06); --u4a-table-row-selected-bg:rgba(37,99,235,.08);
+
+    --u4a-chip-bg:rgba(15,23,42,.04); --u4a-chip-text:#334155;
+
+    --u4a-row-btn-bg:rgba(255,255,255,.7);
+    --u4a-row-btn-hover-bg:rgba(37,99,235,.10); --u4a-row-btn-hover-border:rgba(37,99,235,.4);
+    --u4a-row-btn-danger-hover-bg:rgba(225,29,72,.10); --u4a-row-btn-danger-hover-border:rgba(225,29,72,.5);
+
+    --u4a-card-bg:linear-gradient(180deg,rgba(255,255,255,.85),rgba(255,255,255,.6));
+    --u4a-card-selected-bg:rgba(37,99,235,.06); --u4a-card-selected-border:rgba(37,99,235,.3);
+
+    --u4a-busy-backdrop:rgba(15,23,42,.18); --u4a-busy-box:rgba(255,255,255,.98);
+    --u4a-busy-shadow:0 24px 80px rgba(15,23,42,.18);
+    --u4a-busy-orb-shadow:0 0 18px rgba(37,99,235,.45),0 0 32px rgba(6,182,212,.28);
+
+    --u4a-toast-bg:rgba(255,255,255,.98); --u4a-toast-shadow:0 18px 60px rgba(15,23,42,.18);
+
+    --u4a-tip-bg:rgba(255,255,255,.98); --u4a-tip-shadow:0 8px 24px rgba(15,23,42,.18),0 0 0 1px rgba(37,99,235,.10);
+
+    --u4a-modal-backdrop:rgba(15,23,42,.22); --u4a-modal-bg:rgba(255,255,255,.98);
+    --u4a-modal-overlay:linear-gradient(180deg,rgba(255,255,255,.6),rgba(255,255,255,.25));
+    --u4a-modal-shadow:0 30px 80px rgba(15,23,42,.22),0 0 0 1px rgba(37,99,235,.10);
+    --u4a-modal-head-bg:linear-gradient(90deg,rgba(37,99,235,.14),rgba(6,182,212,.06));
+    --u4a-modal-foot-bg:rgba(15,23,42,.02);
+    --u4a-field-label:#334155;
+    --u4a-check-bg:rgba(255,255,255,.85); --u4a-check-hover-border:rgba(37,99,235,.45);
+    --u4a-check-on-border:rgba(37,99,235,.6); --u4a-check-on-shadow:0 0 10px rgba(37,99,235,.30);
+    --u4a-fab-cancel-bg:linear-gradient(135deg,#e11d48,#9f1239);
+    --u4a-fab-cancel-shadow:0 8px 22px rgba(225,29,72,.26);
+
+    --u4a-scroll-track:rgba(15,23,42,.04);
+    --u4a-scroll-thumb:linear-gradient(180deg,rgba(37,99,235,.55),rgba(6,182,212,.5));
+    --u4a-scroll-thumb-hover:linear-gradient(180deg,rgba(37,99,235,.75),rgba(6,182,212,.7));
+    --u4a-scroll-thumb-border:rgba(255,255,255,.9);
+    --u4a-scroll-firefox:rgba(37,99,235,.45);
+}
+
+/* ---------- 2) 베이스 / 스크롤바 ---------- */
+*{box-sizing:border-box}
+*{scrollbar-width:thin;scrollbar-color:var(--u4a-scroll-firefox) var(--u4a-scroll-track)}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-track{background:var(--u4a-scroll-track);border-radius:999px}
+::-webkit-scrollbar-thumb{background:var(--u4a-scroll-thumb);border:2px solid var(--u4a-scroll-thumb-border);border-radius:999px}
+::-webkit-scrollbar-thumb:hover{background:var(--u4a-scroll-thumb-hover)}
+html,body{margin:0;height:100%;background:var(--u4a-bg);color:var(--u4a-text);
+    font-family:"Segoe UI","Malgun Gothic",Arial,sans-serif;font-size:13px;overflow:hidden}
+
+/* ---------- 3) 앱 셸 / 타이틀바 ---------- */
+.ws-app{display:flex;flex-direction:column;height:100vh;min-width:360px;background:var(--u4a-bg-grad);
+    position:relative;overflow:hidden}
+.ws-app:before{content:"";position:absolute;inset:0;pointer-events:none;
+    background:linear-gradient(var(--u4a-grid) 1px,transparent 1px),linear-gradient(90deg,var(--u4a-grid-2) 1px,transparent 1px);
+    background-size:32px 32px,32px 32px;opacity:var(--u4a-grid-opacity);mix-blend-mode:overlay}
+.ws-titlebar{position:relative;z-index:5;height:var(--u4a-titlebar-h);display:flex;align-items:center;justify-content:space-between;
+    padding:0 6px 0 10px;background:var(--u4a-titlebar-bg);backdrop-filter:var(--u4a-titlebar-blur);
+    -webkit-app-region:drag;color:var(--u4a-titlebar-text);border-bottom:1px solid var(--u4a-titlebar-border);user-select:none}
+.ws-titlebar__brand{display:flex;align-items:center;gap:8px;font-weight:700;letter-spacing:.02em}
+/* 로고: <img class="ws-brand-mark" src="../img/logo.png"> 형태로 사용.
+   파일이 누락되면 onerror 로 .is-fallback 이 붙고, 기존 그라디언트 사각형이 표시됨. */
+.ws-brand-mark{width:18px;height:18px;border-radius:4px;object-fit:contain;display:inline-block;
+    background:transparent;box-shadow:none;flex:0 0 auto;image-rendering:auto;-webkit-user-drag:none;user-select:none}
+.ws-brand-mark.is-fallback{width:14px;height:14px;background:var(--u4a-accent-grad);box-shadow:var(--u4a-brand-glow)}
+.ws-titlebar__text{font-size:12.5px;color:var(--u4a-titlebar-text)}
+.ws-winbtns{display:flex;gap:2px;-webkit-app-region:no-drag}
+.ws-winbtn{width:38px;height:var(--u4a-titlebar-h);border:none;background:transparent;color:var(--u4a-winbtn);
+    cursor:pointer;font-size:12px;border-radius:6px;transition:background var(--ws-dur)}
+.ws-winbtn:hover{background:var(--u4a-winbtn-hover-bg);color:var(--u4a-winbtn-hover-text)}
+.ws-winbtn.close:hover{background:var(--u4a-winbtn-close-hover-bg);color:#fff}
+
+/* ---------- 4) 헤더 / 버튼 / 메뉴 ---------- */
+.ws-header{position:relative;z-index:4;height:var(--u4a-header-h);padding:0 20px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.ws-header__title h1{margin:0;font-size:18px;font-weight:800;color:var(--u4a-header-h1);letter-spacing:.01em;text-shadow:var(--u4a-header-h1-shadow)}
+.ws-header__title span{display:block;color:var(--u4a-header-sub);font-size:12.5px;margin-top:2px}
+.ws-header__actions{display:flex;align-items:center;gap:8px}
+.ws-btn{height:36px;padding:0 14px;border-radius:10px;border:1px solid var(--u4a-line-strong);background:var(--u4a-btn-bg);
+    color:var(--u4a-text);font-weight:600;cursor:pointer;font-size:13px;transition:all var(--ws-dur) var(--ws-ease)}
+.ws-btn:hover{border-color:var(--u4a-btn-border-hover);background:var(--u4a-btn-bg-hover)}
+.ws-btn--primary{border-color:var(--u4a-btn-primary-border);background:var(--u4a-btn-primary-bg);box-shadow:var(--u4a-btn-primary-shadow)}
+.ws-btn--primary:hover{border-color:var(--u4a-btn-primary-border-hover);background:var(--u4a-btn-primary-bg-hover);box-shadow:var(--u4a-btn-primary-shadow-hover)}
+.ws-btn--icon{width:36px;padding:0;font-size:16px;background:var(--u4a-btn-ghost-bg)}
+.ws-menu-wrap{position:relative}
+.ws-menu{position:absolute;right:0;top:calc(100% + 6px);min-width:180px;padding:6px;border-radius:12px;
+    background:var(--u4a-menu-bg);border:1px solid var(--u4a-line-strong);box-shadow:var(--u4a-shadow);z-index:50}
+.ws-menu.is-hidden{display:none}
+.ws-menu__item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;cursor:pointer;color:var(--u4a-text);font-size:13px}
+.ws-menu__item:hover{background:var(--u4a-menu-item-hover)}
+.ws-menu__ico{width:18px;height:18px;display:inline-flex;align-items:center;justify-content:center;flex:0 0 18px;color:var(--u4a-text-soft)}
+.ws-menu__ico .ws-ico{width:17px;height:17px;stroke-width:1.7}
+.ws-menu__text{min-width:0;white-space:nowrap}
+
+/* ---------- 5) 본문 / 패널 / splitter ---------- */
+.ws-main{flex:1;display:flex;min-height:0;padding:0 16px 16px;gap:0;position:relative;z-index:3}
+.ws-panel{flex:none;position:relative;display:flex;flex-direction:column;background:var(--u4a-panel-overlay),var(--u4a-panel);
+    border:1px solid var(--u4a-line-strong);border-radius:var(--u4a-radius);overflow:hidden;box-shadow:var(--u4a-shadow);min-width:0}
+.ws-panel--tree{width:var(--ws-tree-w);flex-shrink:0}
+.ws-panel--server{flex:1;display:flex;flex-direction:column;min-width:0}
+.ws-panel-head{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;
+    border-bottom:1px solid var(--u4a-line);background:var(--u4a-panel-head-bg)}
+.ws-panel-title{font-size:14px;font-weight:800;color:var(--u4a-text-strong);letter-spacing:.01em}
+.ws-panel-sub{font-size:11.5px;color:var(--u4a-text-dim);margin-top:2px}
+.ws-count{padding:2px 10px;border-radius:999px;background:var(--u4a-count-bg);color:var(--u4a-count-text);
+    font-size:11.5px;font-weight:700;border:1px solid var(--u4a-count-border)}
+.ws-splitter{position:relative;width:8px;flex-shrink:0;cursor:col-resize;display:flex;align-items:center;justify-content:center;z-index:4}
+.ws-splitter__grip{width:2px;height:36px;border-radius:2px;background:var(--u4a-splitter);transition:all var(--ws-dur)}
+.ws-splitter:hover .ws-splitter__grip,.ws-splitter.is-active .ws-splitter__grip{height:56px;width:3px;background:var(--u4a-splitter-active)}
+/* 드래그 중: 커서를 col-resize 로 고정하고 텍스트 선택 방지 (마우스가 스플리터 밖으로 나가도 유지) */
+.ws-main.is-resizing{cursor:col-resize}
+.ws-main.is-resizing *{cursor:col-resize !important;user-select:none}
+
+/* ---------- 6) 트리 ---------- */
+.ws-tree-scroll{flex:1;min-height:0;overflow:auto}
+.ws-tree-scroll ul{list-style:none;margin:0;padding:0}
+.ws-tree-scroll li{list-style:none;margin:0;padding:0}
+.ws-tree{min-width:max-content;padding:6px 4px}
+.ws-tree-row{display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:8px;cursor:pointer;
+    color:var(--u4a-text);transition:background var(--ws-dur);user-select:none;border:1px solid transparent}
+.ws-tree-row:hover{background:var(--u4a-tree-hover-bg);border-color:var(--u4a-tree-hover-border)}
+.ws-tree-row.is-selected{background:var(--u4a-tree-selected-bg);border-color:var(--u4a-tree-selected-border);
+    color:var(--u4a-tree-selected-text);box-shadow:inset 3px 0 0 var(--u4a-tree-selected-bar)}
+.ws-tree-toggle{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;
+    font-size:13px;font-weight:800;color:var(--u4a-tree-toggle);user-select:none;
+    transition:transform var(--ws-dur) var(--ws-ease);transform-origin:50% 50%}
+.ws-tree-row.is-open .ws-tree-toggle{transform:rotate(90deg)}
+.ws-tree-icon{flex:none;display:inline-flex;align-items:center;justify-content:center;
+    width:18px;height:18px;color:var(--u4a-warning);filter:var(--u4a-warning-shadow-filter)}
+.ws-tree-icon svg{width:18px;height:18px;fill:var(--u4a-warning);stroke:none}
+.ws-tree-icon path{fill:var(--u4a-warning);stroke:var(--u4a-warning-stroke);stroke-width:.6}
+.ws-tree-label{font-size:12.5px;white-space:nowrap;text-overflow:ellipsis;overflow:hidden}
+
+/* ---------- 7) 툴바 / 검색 / 정렬 핀 ---------- */
+.ws-toolbar{padding:10px 14px;border-bottom:1px solid var(--u4a-line);background:var(--u4a-toolbar-bg);display:flex;align-items:center;gap:10px}
+.ws-search{flex:1;position:relative}
+.ws-search:before{content:"⌕";position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--u4a-text-dim);font-size:14px}
+.ws-search input{width:100%;height:34px;padding:0 12px 0 30px;border-radius:10px;border:1px solid var(--u4a-line);
+    background:var(--u4a-input-bg);color:var(--u4a-text);font-size:13px;outline:none;transition:all var(--ws-dur)}
+.ws-search input::placeholder{color:var(--u4a-input-placeholder)}
+.ws-search input:focus{border-color:var(--u4a-input-focus-border);box-shadow:var(--u4a-input-focus-ring);background:var(--u4a-input-bg-focus)}
+.ws-sort-clear{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 10px;border-radius:999px;
+    border:1px solid var(--u4a-line-strong);background:var(--u4a-pin-bg);color:var(--u4a-pin-text);
+    font-size:12px;font-weight:700;cursor:pointer;transition:all var(--ws-dur);white-space:nowrap}
+.ws-sort-clear.is-hidden{display:none}
+.ws-sort-clear:hover{background:var(--u4a-pin-hover-bg);border-color:var(--u4a-pin-hover-border);box-shadow:var(--u4a-pin-hover-shadow)}
+.ws-sort-clear__count{display:inline-grid;place-items:center;min-width:18px;height:18px;padding:0 5px;border-radius:9px;
+    background:var(--u4a-accent-grad);color:#fff;font-size:11px;font-weight:800;line-height:1}
+.ws-sort-clear__x{display:inline-grid;place-items:center;width:18px;height:18px;border-radius:9px;color:var(--u4a-pin-text);font-size:11px;line-height:1}
+.ws-sort-clear:hover .ws-sort-clear__x{background:var(--u4a-pin-x-hover)}
+
+/* ---------- 8) 테이블 / 상태 / 행액션 ---------- */
+.ws-table-host{flex:1;min-height:0;overflow:auto;background:var(--u4a-table-bg);position:relative}
+.ws-table{width:100%;border-collapse:collapse;table-layout:fixed}
+.ws-table th{height:44px;color:var(--u4a-table-th-text);font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
+    padding:0 14px;text-align:left;border-bottom:1px solid var(--u4a-line-strong);background:var(--u4a-table-th-bg);
+    position:sticky;top:0;z-index:2}
+.ws-table th.is-sortable{cursor:pointer;user-select:none;transition:color var(--ws-dur),background var(--ws-dur)}
+.ws-table th.is-sortable:hover{color:var(--u4a-table-th-hover-text);background:var(--u4a-table-th-hover-bg)}
+.ws-table th.is-sortable.is-sorted{color:var(--u4a-table-th-sorted-text)}
+.ws-th-inner{display:flex;align-items:center;gap:4px;min-width:0}
+.ws-th-label{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ws-sort-ind{flex:0 0 auto;font-size:14px;color:var(--u4a-accent);line-height:1;text-shadow:0 0 8px var(--u4a-accent-glow);white-space:nowrap;letter-spacing:0}
+.ws-table td{height:52px;padding:12px 14px;white-space:normal;overflow-wrap:anywhere;word-break:break-word;vertical-align:middle;
+    color:var(--u4a-table-td-text);border-bottom:1px solid var(--u4a-table-td-border)}
+.ws-table tbody tr{cursor:pointer}
+.ws-table tr:hover td{background:var(--u4a-table-row-hover-bg)}
+.ws-table tr.is-selected td{background:var(--u4a-table-row-selected-bg)}
+.ws-table tr.is-selected td:first-child{box-shadow:inset 3px 0 0 var(--u4a-accent)}
+.ws-col--center{text-align:center}
+.ws-col--right{text-align:right}
+/* .ws-table th{text-align:left} (specificity 0,1,1) 가 .ws-col--center (0,1,0) 를 이기므로
+   비정렬 컬럼(act 등)의 th 라벨이 좌측에 붙는 문제를 해결하려면 specificity 를 올려야 함 */
+.ws-table th.ws-col--center{text-align:center}
+.ws-table th.ws-col--right{text-align:right}
+/* th 내부는 .ws-th-inner(display:flex)이므로 text-align 이 아닌 justify-content 로 정렬해야 헤더 라벨이 컬럼 정렬과 일치 */
+.ws-col--center .ws-th-inner{justify-content:center}
+.ws-col--right  .ws-th-inner{justify-content:flex-end}
+.ws-cell-name{font-weight:600;color:var(--u4a-text-strong)}
+.ws-chip{display:inline-block;padding:2px 9px;border-radius:999px;background:var(--u4a-chip-bg);
+    color:var(--u4a-chip-text);font-size:11.5px;font-weight:700;letter-spacing:.04em;border:1px solid var(--u4a-line)}
+.ws-host{color:var(--u4a-text-soft);font-feature-settings:"tnum"}
+.ws-status{display:inline-flex;align-items:center;gap:6px;font-weight:700;font-size:12.5px}
+.ws-status:before{content:"";width:8px;height:8px;border-radius:50%}
+.ws-status.active{color:var(--u4a-success-text)}
+.ws-status.active:before{background:var(--u4a-success);box-shadow:var(--u4a-success-glow)}
+.ws-status.inactive{color:var(--u4a-inactive-text)}
+.ws-status.inactive:before{background:var(--u4a-inactive-dot)}
+.ws-row-actions{display:inline-flex;gap:6px;justify-content:flex-end;align-items:center}
+.ws-row-btn{width:30px;height:30px;border-radius:8px;border:1px solid var(--u4a-line);
+    background:var(--u4a-row-btn-bg);color:var(--u4a-text);display:inline-flex;align-items:center;justify-content:center;
+    cursor:pointer;transition:all var(--ws-dur)}
+.ws-row-btn:hover{background:var(--u4a-row-btn-hover-bg);border-color:var(--u4a-row-btn-hover-border)}
+.ws-row-btn.danger:hover{background:var(--u4a-row-btn-danger-hover-bg);border-color:var(--u4a-row-btn-danger-hover-border);color:var(--u4a-danger)}
+.ws-row-btn[disabled]{opacity:.35;cursor:not-allowed}
+.ws-ico{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.ws-empty{padding:40px 16px;text-align:center;color:var(--u4a-text-dim)}
+.ws-empty__title{color:var(--u4a-text-soft);font-weight:700;margin-bottom:6px}
+
+/* ---------- 9) pop-in : 서버 패널이 좁아지면 카드형 ---------- */
+.ws-table-host.is-narrow .ws-table,.ws-table-host.is-narrow .ws-table tbody,
+.ws-table-host.is-narrow .ws-table tr,.ws-table-host.is-narrow .ws-table td{display:block;width:100%}
+.ws-table-host.is-narrow .ws-table thead,.ws-table-host.is-narrow .ws-table colgroup{display:none}
+.ws-table-host.is-narrow .ws-table tr{display:grid;grid-template-columns:1fr auto;gap:8px 12px;padding:14px;
+    border-bottom:1px solid var(--u4a-line-strong);background:var(--u4a-card-bg);transition:background var(--ws-dur)}
+.ws-table-host.is-narrow .ws-table tr:hover{background:var(--u4a-table-row-hover-bg)}
+.ws-table-host.is-narrow .ws-table tr.is-selected{background:var(--u4a-card-selected-bg);
+    border-color:var(--u4a-card-selected-border);box-shadow:inset 3px 0 0 var(--u4a-accent)}
+.ws-table-host.is-narrow td{border:none !important;padding:0;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;
+    height:auto;min-height:auto;min-width:0;overflow-wrap:anywhere;word-break:break-word;
+    background:transparent !important}
+.ws-table-host.is-narrow .ws-table tr:hover td{background:transparent !important}
+.ws-table-host.is-narrow .ws-table tr.is-selected td{background:transparent !important}
+.ws-table-host.is-narrow .ws-table tr.is-selected td:first-child{box-shadow:none}
+.ws-table-host.is-narrow td[data-col-key="name"]{grid-column:1;grid-row:1}
+.ws-table-host.is-narrow td[data-col-key="status"]{grid-column:2;grid-row:1;justify-self:end}
+.ws-table-host.is-narrow td[data-col-key="name"] .ws-cell-name{font-size:15px}
+.ws-table-host.is-narrow td[data-col-key="sid"],
+.ws-table-host.is-narrow td[data-col-key="host"],
+.ws-table-host.is-narrow td[data-col-key="sno"],
+.ws-table-host.is-narrow td[data-col-key="act"]{
+    grid-column:1 / -1;display:flex;align-items:center;justify-content:space-between;gap:12px;
+    padding-top:8px;margin-top:2px;border-top:1px dashed var(--u4a-line) !important;text-align:left}
+.ws-table-host.is-narrow td[data-col-key="sid"]:before,
+.ws-table-host.is-narrow td[data-col-key="host"]:before,
+.ws-table-host.is-narrow td[data-col-key="sno"]:before,
+.ws-table-host.is-narrow td[data-col-key="act"]:before{
+    content:attr(data-label);color:var(--u4a-text-dim);font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+.ws-table-host.is-narrow .ws-row-actions{justify-content:flex-end}
+
+/* ---------- 10) busy / toast ---------- */
+.ws-busy{position:fixed;inset:0;display:grid;place-items:center;background:var(--u4a-busy-backdrop);
+    backdrop-filter:blur(4px);z-index:100}
+.ws-busy.is-hidden{display:none}
+.ws-busy__box{padding:24px 28px;border-radius:16px;background:var(--u4a-busy-box);border:1px solid var(--u4a-line-strong);
+    box-shadow:var(--u4a-busy-shadow);text-align:center;color:var(--u4a-text)}
+.ws-busy__orb{width:42px;height:42px;border-radius:50%;background:var(--u4a-accent-grad);margin:0 auto 12px;
+    box-shadow:var(--u4a-busy-orb-shadow);animation:wsorb 1.4s ease-in-out infinite}
+@keyframes wsorb{50%{transform:scale(1.08);filter:brightness(1.2)}}
+.ws-busy__title{font-weight:800;margin-bottom:4px}
+.ws-busy__desc{color:var(--u4a-text-dim);font-size:12.5px}
+.ws-toast-root{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:200;display:flex;flex-direction:column;gap:8px}
+.ws-toast{padding:10px 16px;border-radius:10px;background:var(--u4a-toast-bg);color:var(--u4a-text);
+    border:1px solid var(--u4a-line-strong);box-shadow:var(--u4a-toast-shadow);font-size:12.5px;animation:wstoast .25s var(--ws-ease)}
+@keyframes wstoast{from{transform:translateY(8px);opacity:0}}
+
+/* ---------- 11) 모달 (등록/수정 · 확인) ---------- */
+.ws-modal-backdrop{position:fixed;inset:0;background:var(--u4a-modal-backdrop);backdrop-filter:blur(4px);
+    z-index:150;display:grid;place-items:center;padding:20px;animation:wstoast .2s var(--ws-ease)}
+.ws-modal{width:min(440px,100%);border-radius:16px;border:1px solid var(--u4a-line-strong);
+    background:var(--u4a-modal-overlay),var(--u4a-modal-bg);box-shadow:var(--u4a-modal-shadow);overflow:hidden;color:var(--u4a-text)}
+.ws-modal__head{padding:14px 18px;border-bottom:1px solid var(--u4a-line);background:var(--u4a-modal-head-bg);
+    font-size:14px;font-weight:800;color:var(--u4a-text-strong);display:flex;align-items:center;gap:10px}
+/* 모달/팝업 헤더 로고 — 항상 ../img/logo.png 를 바라봄 (JS createModal 가 자동 삽입) */
+.ws-modal__brand{width:20px;height:20px;border-radius:5px;object-fit:contain;flex:0 0 auto;-webkit-user-drag:none;user-select:none}
+.ws-modal__brand.is-fallback{background:var(--u4a-accent-grad);box-shadow:var(--u4a-brand-glow)}
+.ws-modal__title{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* 공용 로고 유틸 — 어떤 새창/패널/위젯에서든 <img class="ws-logo"> 만 쓰면 됨 */
+.ws-logo{display:inline-block;object-fit:contain;border-radius:5px;-webkit-user-drag:none;user-select:none;flex:0 0 auto}
+.ws-logo--sm{width:16px;height:16px}
+.ws-logo--md{width:24px;height:24px}
+.ws-logo--lg{width:40px;height:40px}
+.ws-logo--xl{width:64px;height:64px}
+.ws-logo.is-fallback{background:var(--u4a-accent-grad);box-shadow:var(--u4a-brand-glow)}
+.ws-modal__body{padding:16px 18px;display:flex;flex-direction:column;gap:14px}
+.ws-modal__foot{padding:12px 18px;border-top:1px solid var(--u4a-line);background:var(--u4a-modal-foot-bg);
+    display:flex;justify-content:flex-end;gap:10px}
+.ws-modal.shake{animation:wsshake .35s ease}
+@keyframes wsshake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.ws-field{display:flex;flex-direction:column;gap:6px}
+.ws-field--checks{flex-direction:row;gap:18px;flex-wrap:wrap;align-items:center}
+.ws-field__label{font-size:12.5px;font-weight:700;color:var(--u4a-field-label)}
+.ws-field__req{color:var(--u4a-accent);margin-left:2px}
+.ws-input,.ws-select{height:36px;padding:0 12px;border-radius:10px;border:1px solid var(--u4a-line);
+    background:var(--u4a-input-bg);color:var(--u4a-text);font-size:13px;outline:none;transition:all var(--ws-dur)}
+.ws-input:focus,.ws-select:focus{border-color:var(--u4a-input-focus-border);box-shadow:var(--u4a-input-focus-ring);background:var(--u4a-input-bg-focus)}
+.ws-input.is-invalid,.ws-select.is-invalid{border-color:var(--u4a-input-invalid-border);box-shadow:var(--u4a-input-invalid-ring);animation:wsshake .35s ease}
+.ws-select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--u4a-select-arrow) 50%),linear-gradient(135deg,var(--u4a-select-arrow) 50%,transparent 50%);
+    background-position:calc(100% - 14px) 50%,calc(100% - 9px) 50%;background-size:5px 5px,5px 5px;background-repeat:no-repeat;padding-right:30px}
+.ws-select option{background:var(--u4a-option-bg);color:var(--u4a-text)}
+.ws-check{display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-size:12.5px;color:var(--u4a-text)}
+.ws-check input{appearance:none;width:18px;height:18px;border-radius:5px;border:1px solid var(--u4a-line-strong);
+    background:var(--u4a-check-bg);position:relative;cursor:pointer;transition:all var(--ws-dur)}
+.ws-check:hover input{border-color:var(--u4a-check-hover-border)}
+.ws-check input:checked{background:var(--u4a-accent-grad);border-color:var(--u4a-check-on-border);box-shadow:var(--u4a-check-on-shadow)}
+.ws-check input:checked:after{content:"✓";position:absolute;inset:0;display:grid;place-items:center;color:#fff;font-size:12px;font-weight:800;line-height:1}
+.ws-fab{width:40px;height:40px;border-radius:50%;border:none;font-size:18px;font-weight:800;cursor:pointer;
+    display:inline-grid;place-items:center;color:#fff;transition:transform var(--ws-dur)}
+.ws-fab:hover{transform:translateY(-1px) scale(1.03)}
+.ws-fab--ok{background:var(--u4a-accent-grad);box-shadow:0 8px 22px var(--u4a-accent-glow)}
+.ws-fab--cancel{background:var(--u4a-fab-cancel-bg);box-shadow:var(--u4a-fab-cancel-shadow)}
+
+/* About(정보) 모달 : aboutWs.html 을 iframe 으로 표시 (옵션 메뉴 → 정보) */
+.ws-about-modal{position:relative;width:min(900px,92vw);height:min(620px,86vh);
+    border-radius:var(--u4a-radius);border:1px solid var(--u4a-line-strong);
+    background:var(--u4a-modal-bg);box-shadow:var(--u4a-shadow);overflow:hidden;
+    transform:scale(.96);opacity:.65;transition:transform var(--ws-dur) var(--ws-ease),opacity var(--ws-dur) var(--ws-ease)}
+.ws-modal-backdrop.is-open .ws-about-modal{transform:scale(1);opacity:1}
+.ws-about-frame{display:block;width:100%;height:100%;border:0;background:var(--u4a-bg)}
+.ws-about-close{position:absolute;top:12px;right:12px;z-index:5;width:34px;height:34px;border-radius:10px;
+    border:1px solid var(--u4a-line-strong);background:var(--u4a-btn-bg);color:var(--u4a-text);
+    font-size:14px;line-height:1;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;
+    transition:all var(--ws-dur)}
+.ws-about-close:hover{background:var(--u4a-winbtn-close-hover-bg);color:#fff;border-color:transparent}
+
+/* ---------- 12) 말풍선 툴팁 ---------- */
+.ws-tip{position:fixed;z-index:300;max-width:360px;padding:8px 12px;border-radius:8px;
+    background:var(--u4a-tip-bg);color:var(--u4a-text);font-size:12px;line-height:1.4;
+    border:1px solid var(--u4a-line-strong);box-shadow:var(--u4a-tip-shadow);
+    pointer-events:none;opacity:0;transform:translateY(2px);transition:opacity .15s var(--ws-ease),transform .15s var(--ws-ease);white-space:normal;word-break:break-word}
+.ws-tip.is-visible{opacity:1;transform:translateY(0)}

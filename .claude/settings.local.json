@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(git config --global user.name)",
+      "PowerShell(git config --global user.email)",
+      "PowerShell(Get-ChildItem -Force | Select-Object Mode, Length, Name; Write-Output \"---COUNT---\"; \\(Get-ChildItem -Recurse -File | Measure-Object\\).Count)"
+    ]
+  }
+}
