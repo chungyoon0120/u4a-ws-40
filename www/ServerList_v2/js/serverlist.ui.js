@@ -197,11 +197,14 @@ window.U4A_LOGO = window.U4A_LOGO || (function () {
         rebuildSettingsMenu();   // 메뉴 텍스트 갱신
         refreshFromState();       // 트리 + 테이블 (헤더 라벨, 상태 배지, 버튼 title 등)
         updateSortClearVisibility(); // 핀 카운트 갱신
+        broadcastUxLang(lang);    // 열려있는 로그인 창에도 동일 언어 전파
     }
 
     /* ---------- 테마 ---------- */
     const THEME_KEY = "u4a-ws-theme-v1";
     const THEMES = ["purple", "dark", "white"];
+    // 테마별 기본 배경색(공통 테마 --u4a-bg 와 동일) — BrowserWindow backgroundColor 용
+    const THEME_BG = { purple: "#0f0818", dark: "#0b1118", white: "#eef2f7" };
     let THEME = "purple";
     function loadTheme() {
         try { const v = localStorage.getItem(THEME_KEY); if (v && THEMES.indexOf(v) >= 0) return v; } catch (_) {}
@@ -215,8 +218,53 @@ window.U4A_LOGO = window.U4A_LOGO || (function () {
     }
     function setTheme(theme) {
         if (THEMES.indexOf(theme) < 0) theme = "purple";
-        applyTheme(theme);
-        saveTheme(theme);   // 가드 없이 항상 저장 (라이브 프리뷰로 THEME 가 이미 바뀐 경우 대비)
+        applyTheme(theme);  // ServerList 자체 UI 에만 적용
+        saveTheme(theme);   // 신규 창 열 때의 글로벌 폴백 테마로 저장 (SYSID 저장값 없을 때만 사용됨)
+        // ※ 이미 열린 로그인/메인 창은 SYSID 기준 테마를 따르므로 ServerList 테마 변경을 전파하지 않는다(영향 X).
+    }
+
+    /* SYSID 기준 UX 테마 — 메인 페이지 옵션에서 userData 에 저장한 값을 읽는다.
+       파일: <userData>/u4a-ws/uxThemeBySysid.json ({ "<SYSID>": "<theme>" })
+       로그인 창을 열 때, 해당 서버 SYSID 의 저장 테마가 있으면 그걸로 로그인부터 적용한다.
+       (없으면 "" 반환 → 호출부에서 ServerList 글로벌 THEME 로 폴백) */
+    function readSysidUxTheme(sysid) {
+        if (!sysid || typeof require !== "function") return "";
+        try {
+            const REMOTE = require("@electron/remote");
+            const PATH   = require("path");
+            const FS     = require("fs");
+            const file = PATH.join(REMOTE.app.getPath("userData"), "u4a-ws", "uxThemeBySysid.json");
+            if (!FS.existsSync(file)) return "";
+            const obj = JSON.parse(FS.readFileSync(file, "utf8")) || {};
+            const v = obj[sysid];
+            return (THEMES.indexOf(v) >= 0) ? v : "";
+        } catch (_) { return ""; }
+    }
+
+    /* ---------- 열린 로그인 창 추적 + 테마 실시간 전파 ----------
+       로그인 창(ws30/ws10_20/index.html)은 별도 BrowserWindow + 랜덤 partition 이라
+       localStorage 가 공유되지 않으므로, 테마 변경 시 IPC(webContents.send)로 직접 전파한다.
+       수신측: ws30/ws10_20/index.js 의 'u4a-ws-ux-theme' 핸들러. */
+    const aOpenLoginWins = [];
+    function _trackLoginWin(win) { if (win && aOpenLoginWins.indexOf(win) < 0) aOpenLoginWins.push(win); }
+    function _untrackLoginWin(win) { const i = aOpenLoginWins.indexOf(win); if (i >= 0) aOpenLoginWins.splice(i, 1); }
+    function broadcastUxTheme(theme) {
+        for (let i = aOpenLoginWins.length - 1; i >= 0; i--) {
+            const w = aOpenLoginWins[i];
+            try {
+                if (!w || w.isDestroyed()) { aOpenLoginWins.splice(i, 1); continue; }
+                w.webContents.send("u4a-ws-ux-theme", theme);
+            } catch (_) { aOpenLoginWins.splice(i, 1); }
+        }
+    }
+    function broadcastUxLang(lang) {
+        for (let i = aOpenLoginWins.length - 1; i >= 0; i--) {
+            const w = aOpenLoginWins[i];
+            try {
+                if (!w || w.isDestroyed()) { aOpenLoginWins.splice(i, 1); continue; }
+                w.webContents.send("u4a-ws-ux-lang", lang);
+            } catch (_) { aOpenLoginWins.splice(i, 1); }
+        }
     }
 
     /* ---------- 상태 ---------- */
@@ -547,6 +595,10 @@ window.U4A_LOGO = window.U4A_LOGO || (function () {
             const SESSKEY    = _randKey(40);
             const BROWSERKEY = _randKey(10);
 
+            // 접속 SYSID 기준 저장 테마(메인 옵션에서 userData 에 저장한 값) → 없으면 ServerList 글로벌 THEME
+            const sSysid    = svc.systemid || row.sid || "";
+            const sWinTheme = readSysidUxTheme(sSysid) || THEME;
+
             // 첨부 이미지의 index.html 경로: <APPPATH>/ws30/ws10_20/index.html
             const filePath = PATH.join(APPPATH, "ws30", "ws10_20", "index.html");
             const fileUrl  = "file:///" + String(filePath).replace(/\\/g, "/");
@@ -554,7 +606,9 @@ window.U4A_LOGO = window.U4A_LOGO || (function () {
                 "browserkey=" + encodeURIComponent(BROWSERKEY),
                 "sessionKey=" + encodeURIComponent(SESSKEY),
                 "OBJTY=MAIN",
-                "SYSID="      + encodeURIComponent(svc.systemid || row.sid || ""),
+                "SYSID="      + encodeURIComponent(sSysid),
+                "u4aTheme="   + encodeURIComponent(sWinTheme), // SYSID 기준 테마를 로그인창에 전달(로그인부터 적용)
+                "u4aLang="    + encodeURIComponent(LANG),       // 현재 ServerList 표시 언어를 로그인 창에 전달
             ].join("&");
             const sLoadUrl = fileUrl + "?" + qs;
 
@@ -564,11 +618,13 @@ window.U4A_LOGO = window.U4A_LOGO || (function () {
                 width: 1000, height: 800, minWidth: 1000, minHeight: 800,
                 titleBarStyle: "hidden",
                 autoHideMenuBar: true,
+                show: false,                                              // 첫 페인트 준비 전까지 숨김 → ready-to-show 에서 표시
+                backgroundColor: THEME_BG[sWinTheme] || THEME_BG.purple,  // 첫 페인트 전 흰색 플래시 방지(SYSID 테마색)
                 webPreferences: {
                     partition: SESSKEY,
                     browserkey: BROWSERKEY,
                     OBJTY: "MAIN",
-                    SYSID: svc.systemid || row.sid || "",
+                    SYSID: sSysid,
                     nodeIntegration: true,
                     contextIsolation: false,
                     webSecurity: false,
@@ -577,7 +633,27 @@ window.U4A_LOGO = window.U4A_LOGO || (function () {
 
             busy(true);
             oBrowserWindow = new REMOTE.BrowserWindow(oBrowserOptions);
+            _trackLoginWin(oBrowserWindow);   // 테마 실시간 전파 대상으로 등록
             try { oBrowserWindow.setMenu(null); } catch (_) {}
+
+            // 느린 PC 대응: 첫 프레임이 그려질 준비가 됐을 때(ready-to-show)에만 창을 표시.
+            //  - show:false + 테마색 backgroundColor 와 함께 → 흰색 플래시 없이 자연스럽게 등장
+            //  - 만약 ready-to-show 가 비정상적으로 지연되어도 영구히 숨지 않도록 안전망(타임아웃) 둠
+            let bShown = false;
+            const showLoginWin = () => {
+                if (bShown) { return; }
+                bShown = true;
+                try {
+                    if (!oBrowserWindow.isDestroyed()) {
+                        oBrowserWindow.show();
+                        oBrowserWindow.focus();
+                    }
+                } catch (_) {}
+            };
+            oBrowserWindow.once("ready-to-show", showLoginWin);
+            // 안전망: 일부 환경에서 ready-to-show 가 안 오는 경우 대비 (최대 3초 후 강제 표시)
+            setTimeout(showLoginWin, 3000);
+
             oBrowserWindow.loadURL(sLoadUrl);
 
             // 새 창의 renderer 에서 @electron/remote 사용을 허용 (열어준 창 한정)
@@ -612,7 +688,7 @@ window.U4A_LOGO = window.U4A_LOGO || (function () {
                 } catch (e) { console.warn("[UI] if-meta-info 전송 실패:", e && e.message); }
             });
 
-            oBrowserWindow.on("closed", () => { oBrowserWindow = null; });
+            oBrowserWindow.on("closed", () => { _untrackLoginWin(oBrowserWindow); oBrowserWindow = null; });
         } catch (e) {
             busy(false);
             console.error("[UI] 새 창 오픈 실패:", e);
@@ -1057,8 +1133,9 @@ window.U4A_LOGO = window.U4A_LOGO || (function () {
         });
         const $sel = modal.querySelector("#ws-theme-select");
         $sel.value = cur;
-        // 라이브 프리뷰: 선택 변경 즉시 테마 미리보기 (취소 시 원복)
-        $sel.addEventListener("change", () => applyTheme($sel.value));
+        // 라이브 프리뷰: 선택 변경 즉시 ServerList 자체 UI 만 미리보기 (취소 시 원복).
+        //  ※ 다른 창(로그인/메인)에는 전파하지 않음 — 그 창들은 SYSID 기준 테마를 따른다.
+        $sel.addEventListener("change", () => { applyTheme($sel.value); });
         function doSave() {
             const next = $sel.value;
             setTheme(next);

@@ -17,22 +17,9 @@
     <!-- ===== from Frame.html ===== -->
     <link rel="stylesheet" href="./css/frame.css">
 
-    <!-- ===== 공통 헤더(최상위) 테마 토큰 ===== -->
-    <link rel="stylesheet" href="../../css/theme/u4a-theme.css">
-    <script>
-        // FOUC 방지: data-theme 즉시 적용 (URL u4aTheme → 없으면 purple)
-        (function () {
-            try {
-                var q = new URLSearchParams(location.search).get("u4aTheme");
-                var t = (q === "dark" || q === "white" || q === "purple") ? q : "purple";
-                document.documentElement.setAttribute("data-theme", t);
-            } catch (_) { document.documentElement.setAttribute("data-theme", "purple"); }
-        })();
-    </script>
-
     <!-- ===== from Frame.html : scripts ===== -->
     <script src="../../js/jquery.min.js"></script>
-
+    
     <!-- 공통 리소스 로드 -->
     <script src="../resources/index.js"></script>
 
@@ -45,45 +32,10 @@
         body {
             overflow-y: hidden;
         }
-
-        /* ===== 공통 헤더 (최상위 문서이므로 app-region 드래그가 Electron 업그레이드에도 안정적) ===== */
-        #u4a-host-titlebar {
-            position: fixed; top: 0; left: 0; right: 0; height: 34px; z-index: 10000;
-            display: flex; align-items: center; justify-content: space-between; padding: 0 6px 0 10px;
-            background: var(--u4a-titlebar-bg, #0f0818); color: var(--u4a-titlebar-text, #f4e8ff);
-            border-bottom: 1px solid var(--u4a-titlebar-border, rgba(255, 255, 255, .06));
-            -webkit-app-region: drag; user-select: none;
-            font-family: "Segoe UI", "Malgun Gothic", Arial, sans-serif; font-size: 12.5px;
-            backdrop-filter: var(--u4a-titlebar-blur, none);
-        }
-        .u4a-host-titlebar__brand { display: flex; align-items: center; gap: 8px; font-weight: 700; letter-spacing: .02em; }
-        .u4a-host-brand { width: 18px; height: 18px; object-fit: contain; -webkit-user-drag: none; flex: 0 0 auto; }
-        .u4a-host-titlebar__text { font-size: 12.5px; color: var(--u4a-titlebar-text, #f4e8ff); }
-        .u4a-host-winbtns { display: flex; gap: 2px; -webkit-app-region: no-drag; }
-        .u4a-host-winbtn {
-            width: 38px; height: 34px; border: none; background: transparent; color: var(--u4a-winbtn, #e0cef2);
-            cursor: pointer; font-size: 12px; border-radius: 6px; transition: background .15s, color .15s;
-        }
-        .u4a-host-winbtn:hover { background: var(--u4a-winbtn-hover-bg, rgba(255, 255, 255, .08)); color: var(--u4a-winbtn-hover-text, #fff); }
-        .u4a-host-winbtn.close:hover { background: var(--u4a-winbtn-close-hover-bg, #d83b3b); color: #fff; }
     </style>
 </head>
 
 <body class="sapUiBody u4aWsMainBody">
-
-    <!-- ===== 공통 헤더 (로그인/메인 공용, 최상위 문서) ===== -->
-    <div id="u4a-host-titlebar" class="u4a-host-titlebar">
-        <div class="u4a-host-titlebar__brand">
-            <img class="u4a-host-brand" src="../../img/logo.png" alt="U4A Workspace" draggable="false"
-                 onerror="this.style.visibility='hidden'" />
-            <span id="u4a-host-title" class="u4a-host-titlebar__text">U4A Workspace</span>
-        </div>
-        <div class="u4a-host-winbtns">
-            <button id="u4a-host-min" class="u4a-host-winbtn" title="Minimize">&#8211;</button>
-            <button id="u4a-host-max" class="u4a-host-winbtn" title="Maximize">&#9633;</button>
-            <button id="u4a-host-close" class="u4a-host-winbtn close" title="Close">&#10005;</button>
-        </div>
-    </div>
 
     <!-- ===== from ws10_20.html ===== -->
     <div id="content" style="display: none;" class="u4aWsContent"></div>

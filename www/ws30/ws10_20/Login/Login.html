@@ -1,211 +1,153 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
     <title>U4A Workspace #Login</title>
+    <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+
     <link rel="stylesheet" href="css/login.css">
-    <!-- <link rel="stylesheet" href="../css/common.css"> -->
-    <!-- <link rel="stylesheet" href="./style.css"> -->
 
-
-    <style>
-        html,
-        body {
-            margin: 0px;
-        }
-
-        /* Loading Page */
-        .u4a_loaders {
-            font-family: sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100%;
-            font-size: 2.5rem;
-            color: rgba(2, 8, 16, 0.55);
-            position: absolute;
-            top: 0;
-            width: 100%;
-            background: white;
-            box-shadow: rgba(0, 0, 0, 0.11) 0px 15px 30px 0px, rgba(0, 0, 0, 0.08) 0px 5px 15px 0px;
-        }
-
-        .u4a_loader {
-            display: inline-block;
-            position: relative;
-            width: 60px;
-            height: 20px;
-            text-align: center;
-            vertical-align: middle;
-        }
-
-        .u4a_loadersInactive {
-            display: none;
-        }
-
-        .u4a_loader-bars:before,
-        .u4a_loader-bars:after,
-        .u4a_loader-bars span {
-            content: "";
-            display: block;
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 10px;
-            height: 30px;
-            background-color: rgba(2, 8, 16, 0.55);
-            -webkit-animation: u4a_grow 1.5s linear infinite;
-            animation: u4a_grow 1.5s linear infinite;
-        }
-
-        .u4a_loader-bars:after {
-            left: 15px;
-            -webkit-animation: u4a_grow 1.5s linear -0.5s infinite;
-            animation: u4a_grow 1.5s linear -0.5s infinite;
-        }
-
-        .u4a_loader-bars span {
-            left: 30px;
-            -webkit-animation: u4a_grow 1.5s linear -1s infinite;
-            animation: u4a_grow 1.5s linear -1s infinite;
-        }
-
-        @-webkit-keyframes u4a_grow {
-            0% {
-                -webkit-transform: scaleY(0);
-                transform: scaleY(0);
-                opacity: 0;
-            }
-
-            50% {
-                -webkit-transform: scaleY(1);
-                transform: scaleY(1);
-                opacity: 1;
-            }
-
-            100% {
-                -webkit-transform: scaleY(0);
-                transform: scaleY(0);
-                opacity: 0;
-            }
-        }
-
-        @keyframes u4a_grow {
-            0% {
-                -webkit-transform: scaleY(0);
-                transform: scaleY(0);
-                opacity: 0;
-            }
-
-            50% {
-                -webkit-transform: scaleY(1);
-                transform: scaleY(1);
-                opacity: 1;
-            }
-
-            100% {
-                -webkit-transform: scaleY(0);
-                transform: scaleY(0);
-                opacity: 0;
-            }
-        }
-
-
-        .u4aWsLoginFormFcard {
-            min-width: 300px;
-        }
-
-        .u4aWsLoginFormFcard .sapFAvatarSquare .sapFAvatarImageCover {
-            background-size: 45px 35px;
-        }
-
-        .u4aWsLoginFormFcard .sapFCardHeaderImage .sapFAvatarSquare.sapFCardIcon {
-            margin-right: 0.5rem;
-        }
-
-        .u4aWsLoginFormFcard.sapFCard .sapFCardHeader .sapFCardHeaderWrapper .sapFCardHeaderText .sapMText {
-            font-size: 1.2rem;
-            font-weight: bold;
-        }
-
-        .u4aWsLoginFormFcard.sapFCard .sapFCardHeader:focus::before {
-            border: 0px;
-        }
-
-        .u4aWsVersionCheckDialog--illustMsg .sapMTitle {
-            /* margin-top: 1rem; */
-            color: #ecececeb;
-            animation: editTitle 1.2s infinite;
-            -webkit-animation: editTitle 1.2s infinite;
-            -moz-animation-duration: 1.2s;
-            -moz-animation-name: editTitle;
-            -moz-animation-iteration-count: infinite;
-        }
-
-        /* .u4aWsVersionCheckDialog--illustMsg .sapMIllustratedMessageDescription {
-            display: none;
-        } */
-
-        .u4aWsVersionCheckDialog .u4aWsVersionCheckDialog--illustMsg.sapMIllustratedMessage .sapMIllustratedMessageDescription {
-            margin-top: 1rem;
-            margin-bottom: 0rem;
-            font-size: 1rem;
-            font-weight: bold;
-        }
-
-        @keyframes editTitle {
-            0% {
-                color: #ecececeb;
-            }
-
-            50% {
-                color: #000000;
-            }
-
-            100% {
-                color: #ecececeb;
-            }
-        }
-
-
-        /* .u4aLoginErrorMsgBox .sapMDialogTitle .sapMIBar */
-        
-    </style>
-</head>
-
-
-
-<body class="sapUiBody">
-
-    <div id="content" style="display:none;" class="u4aWsContent"></div>
-
-    <!-- Page Loading Start -->
-    <!-- <div id="u4a_main_load" class="u4a_loaders u4a_loadersInactive">
-        <span class="u4a_loader u4a_loader-bars"> <span></span> </span> Loading...
-    </div> -->
-    <!-- Page Loading End -->
     <script>
+        // FOUC 방지: CSS 로드 전 테마를 즉시 html[data-theme] 에 적용
+        //  우선순위: URL 쿼리(u4aTheme, ServerList 가 창 열 때 전달) → localStorage → purple
+        (function () {
+            function valid(v) { return v === "dark" || v === "white" || v === "purple"; }
+            var t = "";
+            try {
+                var q = new URLSearchParams(location.search).get("u4aTheme");
+                if (valid(q)) { t = q; try { localStorage.setItem("u4a-ws-theme-v1", q); } catch (_) {} }
+            } catch (_) {}
+            if (!t) { try { var v = localStorage.getItem("u4a-ws-theme-v1"); if (valid(v)) t = v; } catch (_) {} }
+            document.documentElement.setAttribute("data-theme", t || "purple");
+        })();
+    </script>
 
+    <script>
         /************************************************************************
-         * 에러 감지
+         * 에러 감지 / 공용 Node 핸들 (parent 로부터 주입)
          ************************************************************************/
-         var require = parent.require, 
+        var require = parent.require,
             REMOTE = require('@electron/remote'),
             IPCMAIN = REMOTE.require('electron').ipcMain,
             PATH = REMOTE.require('path'),
             APP = REMOTE.app,
             APPPATH = APP.getAppPath(),
-            PATHINFO = require(PATH.join(APPPATH, "ws30", "resources", "pathInfo.js")), 
+            PATHINFO = require(PATH.join(APPPATH, "ws30", "resources", "pathInfo.js")),
             WSERR = require(PATHINFO.WSTRYCATCH);
 
         var zconsole = WSERR(window, document, console);
-
     </script>
+</head>
+
+<body class="u4aWsLoginBody">
+
+    <!-- 전체 화면 셸 (로그인 성공 전까지 fade-in 대상) -->
+    <!-- 타이틀바는 공통 헤더(ws10_20/index.html)로 이동 — 이 페이지는 헤더 아래 영역만 채움 -->
+    <div id="content" class="ws-login-app" style="display:none;">
+
+        <!-- 본문: 가운데 로그인 카드 -->
+        <main class="ws-login-main">
+
+            <section class="ws-login-card" role="form" aria-label="U4A Workspace Login">
+
+                <header class="ws-login-card__head">
+                    <img class="ws-login-card__logo" id="ws-card-logo" alt="U4A Workspace" draggable="false"
+                         onerror="this.onerror=null;this.classList.add('is-fallback');this.removeAttribute('src');" />
+                    <div class="ws-login-card__title" data-i18n="card_title">U4A Workspace Login</div>
+                </header>
+
+                <div class="ws-login-card__body">
+
+                    <!-- CLIENT -->
+                    <div class="ws-field" id="ws-field-client">
+                        <label class="ws-field__label" for="ws_client"><span data-i18n="lbl_client">CLIENT</span> <span class="ws-field__req">*</span></label>
+                        <input id="ws_client" class="ws-input" type="text" inputmode="numeric" maxlength="3"
+                               autocomplete="off" spellcheck="false" />
+                        <div class="ws-field__msg"></div>
+                    </div>
+
+                    <!-- ID -->
+                    <div class="ws-field" id="ws-field-id">
+                        <label class="ws-field__label" for="ws_id"><span data-i18n="lbl_id">ID</span> <span class="ws-field__req">*</span></label>
+                        <input id="ws_id" class="ws-input" type="text" autocomplete="off" spellcheck="false"
+                               list="ws_id_sugg" />
+                        <datalist id="ws_id_sugg"></datalist>
+                        <div class="ws-field__msg"></div>
+                    </div>
+
+                    <!-- PASSWORD -->
+                    <div class="ws-field" id="ws-field-pw">
+                        <label class="ws-field__label" for="ws_pw"><span data-i18n="lbl_pw">PASSWORD</span> <span class="ws-field__req">*</span></label>
+                        <div class="ws-input-wrap">
+                            <input id="ws_pw" class="ws-input ws-input--has-icon" type="password" autocomplete="off" spellcheck="false" />
+                            <button type="button" id="ws_pw_toggle" class="ws-input-icon" data-i18n-title="pw_toggle" title="Show / Hide" tabindex="-1" aria-label="Show password">
+                                <span class="ws-eye">&#128065;</span>
+                            </button>
+                        </div>
+                        <div class="ws-field__msg"></div>
+                    </div>
+
+                    <!-- LANGUAGE (Input: 하위버전 서버) — 기본 숨김 -->
+                    <div class="ws-field" id="ws_langu_input_form" style="display:none;">
+                        <label class="ws-field__label" for="ws_langu"><span data-i18n="lbl_langu">LANGUAGE</span> <span class="ws-field__req">*</span></label>
+                        <input id="ws_langu" class="ws-input" type="text" maxlength="2" autocomplete="off" spellcheck="false" />
+                        <div class="ws-field__msg"></div>
+                    </div>
+
+                    <!-- LANGUAGE (Select: 서버 설치 언어 목록) — 기본 숨김 -->
+                    <div class="ws-field" id="ws_langu_select_form" style="display:none;">
+                        <label class="ws-field__label" for="ws_langu_select"><span data-i18n="lbl_langu">LANGUAGE</span> <span class="ws-field__req">*</span></label>
+                        <select id="ws_langu_select" class="ws-select"></select>
+                        <div class="ws-field__msg"></div>
+                    </div>
+
+                    <!-- Workspace Language -->
+                    <div class="ws-field" id="ws-field-wslangu">
+                        <label class="ws-field__label" for="ws_wslangu" data-i18n="lbl_wslangu">Workspace Language</label>
+                        <select id="ws_wslangu" class="ws-select">
+                            <option value="EN">EN</option>
+                            <option value="KO">KO</option>
+                        </select>
+                    </div>
+
+                    <!-- Remember -->
+                    <div class="ws-field ws-field--check">
+                        <label class="ws-check">
+                            <input id="ws_rem" type="checkbox" />
+                            <span class="ws-check__box"></span>
+                            <span class="ws-check__text" data-i18n="lbl_remember">Remember</span>
+                        </label>
+                    </div>
+
+                    <!-- LOGIN -->
+                    <button type="button" id="ws_loginBtn" class="ws-btn ws-btn--primary ws-btn--block" data-i18n="btn_login">LOGIN</button>
+
+                    <!-- Staff 빠른 로그인 (U4A R&D 서버 한정) — 추후 단계 -->
+                    <div id="ws-staff-btns" class="ws-staff-btns" style="display:none;"></div>
+
+                </div>
+
+            </section>
+
+        </main>
+
+        <!-- 푸터 -->
+        <footer class="ws-login-foot">
+            <span class="ws-login-foot__copy">Copyright 2022. Infocg inc. all rights reserved.</span>
+            <span class="ws-login-foot__sysid">SYSID: <b id="ws-foot-sysid"></b></span>
+        </footer>
+
+    </div>
+
+    <!-- Toast / Modal 루트 -->
+    <div id="ws-toast-root" class="ws-toast-root"></div>
+    <div id="ws-modal-root"></div>
+
     <script src="Login.js"></script>
-    <script src="Login_trial.js"></script>
+    <!-- Login_trial.js (UI5) 는 Trial 변환 시 재추가 — 현재 로그인 경로는 UI5 미사용 -->
 </body>
 
 </html>
