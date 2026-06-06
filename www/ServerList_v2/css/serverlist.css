@@ -28,9 +28,13 @@ html,body{margin:0;height:100%;background:var(--u4a-bg);color:var(--u4a-text);
 .ws-titlebar__text{font-size:12.5px;color:var(--u4a-titlebar-text)}
 .ws-winbtns{display:flex;gap:2px;-webkit-app-region:no-drag}
 .ws-winbtn{width:38px;height:var(--u4a-titlebar-h);border:none;background:transparent;color:var(--u4a-winbtn);
-    cursor:pointer;font-size:12px;border-radius:6px;transition:background var(--ws-dur)}
+    cursor:pointer;font-size:12px;border-radius:6px;transition:background var(--ws-dur),color var(--ws-dur);
+    display:flex;align-items:center;justify-content:center;padding:0}
 .ws-winbtn:hover{background:var(--u4a-winbtn-hover-bg);color:var(--u4a-winbtn-hover-text)}
 .ws-winbtn.close:hover{background:var(--u4a-winbtn-close-hover-bg);color:#fff}
+.ws-winicon{width:11px;height:11px;display:block;fill:none;stroke:currentColor;stroke-width:1.1;
+    stroke-linecap:round;stroke-linejoin:round;transition:stroke var(--ws-dur)}
+.ws-winbtn:active .ws-winicon{transform:scale(.9)}
 
 /* ---------- 4) 헤더 / 버튼 / 메뉴 ---------- */
 .ws-header{position:relative;z-index:4;height:var(--u4a-header-h);padding:0 20px;display:flex;align-items:center;justify-content:space-between;gap:16px}
