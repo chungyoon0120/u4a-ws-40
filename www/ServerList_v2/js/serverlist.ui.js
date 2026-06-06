@@ -1037,6 +1037,19 @@ window.U4A_LOGO = window.U4A_LOGO || (function () {
         on("ws-win-min",   () => win && win.minimize());
         on("ws-win-max",   () => win && (win.isMaximized() ? win.unmaximize() : win.maximize()));
         on("ws-win-close", () => win && win.close());
+
+        // 최대화/복원 상태에 따라 최대화 버튼 아이콘(사각형 ↔ 겹친 사각형) 토글
+        const maxBtn = document.getElementById("ws-win-max");
+        const syncMaxIcon = () => {
+            if (!maxBtn) return;
+            let m = false; try { m = !!(win && win.isMaximized()); } catch (_) {}
+            maxBtn.classList.toggle("is-maximized", m);
+            maxBtn.title = m ? "Restore" : "Maximize";
+        };
+        if (win && typeof win.on === "function") {
+            try { win.on("maximize", syncMaxIcon); win.on("unmaximize", syncMaxIcon); } catch (_) {}
+        }
+        syncMaxIcon();
     }
 
     /* ---------- Refresh / 설정 메뉴 ---------- */

@@ -66,6 +66,15 @@
         }
         .lp-winbtn:hover { background: #F3F4F6; }
         .lp-winbtn.close:hover { background: #E81123; color: #FFFFFF; }
+        .lp-winicon {
+            width: 11px; height: 11px; display: block;
+            fill: none; stroke: currentColor; stroke-width: 1.1;
+            stroke-linecap: round; stroke-linejoin: round;
+        }
+        .lp-winbtn:active .lp-winicon { transform: scale(.9); }
+        .lp-winicon--restore { display: none; }
+        .lp-winbtn.is-maximized .lp-winicon--max { display: none; }
+        .lp-winbtn.is-maximized .lp-winicon--restore { display: block; }
 
         /* ---------- WS 브랜드 마크 (W with subscript s, 퍼플) ---------- */
         .lp-mark {
@@ -264,9 +273,16 @@
             <span>U4A Workspace - Login</span>
         </div>
         <div class="lp-winbtns">
-            <button class="lp-winbtn"        id="lp-win-min"   title="Minimize" aria-label="Minimize">&#8211;</button>
-            <button class="lp-winbtn"        id="lp-win-max"   title="Maximize" aria-label="Maximize">&#9633;</button>
-            <button class="lp-winbtn close"  id="lp-win-close" title="Close"    aria-label="Close">&#10005;</button>
+            <button class="lp-winbtn"        id="lp-win-min"   title="Minimize" aria-label="Minimize">
+                <svg class="lp-winicon" viewBox="0 0 10 10" aria-hidden="true" focusable="false"><line x1="1.5" y1="5" x2="8.5" y2="5" /></svg>
+            </button>
+            <button class="lp-winbtn"        id="lp-win-max"   title="Maximize" aria-label="Maximize">
+                <svg class="lp-winicon lp-winicon--max" viewBox="0 0 10 10" aria-hidden="true" focusable="false"><rect x="1.5" y="1.5" width="7" height="7" rx="1.2" /></svg>
+                <svg class="lp-winicon lp-winicon--restore" viewBox="0 0 10 10" aria-hidden="true" focusable="false"><rect x="1.3" y="3" width="5.7" height="5.7" rx="1" /><path d="M3.4 3 V2.1 a1 1 0 0 1 1-1 H8.7 a1 1 0 0 1 1 1 V6.4 a1 1 0 0 1 -1 1 H7" /></svg>
+            </button>
+            <button class="lp-winbtn close"  id="lp-win-close" title="Close"    aria-label="Close">
+                <svg class="lp-winicon" viewBox="0 0 10 10" aria-hidden="true" focusable="false"><line x1="1.6" y1="1.6" x2="8.4" y2="8.4" /><line x1="8.4" y1="1.6" x2="1.6" y2="8.4" /></svg>
+            </button>
         </div>
     </div>
 
@@ -389,6 +405,21 @@
             try { if (w.isMaximized()) w.unmaximize(); else w.maximize(); } catch (_) {}
         };
         if ($close) $close.onclick = function () { const w = curWin(); if (w) w.close(); else window.close(); };
+        // 최대화/복원 상태에 따라 최대화 버튼 아이콘 토글
+        const syncMaxIcon = function () {
+            if (!$max) return;
+            const w = curWin();
+            let m = false; try { m = !!(w && w.isMaximized()); } catch (_) {}
+            $max.classList.toggle("is-maximized", m);
+            $max.title = m ? "Restore" : "Maximize";
+        };
+        (function () {
+            const w = curWin();
+            if (w && typeof w.on === "function") {
+                try { w.on("maximize", syncMaxIcon); w.on("unmaximize", syncMaxIcon); } catch (_) {}
+            }
+            syncMaxIcon();
+        })();
 
         /* ---------- input clear 버튼 가시성/동작 ---------- */
         document.querySelectorAll(".lp-clear").forEach(function (btn) {

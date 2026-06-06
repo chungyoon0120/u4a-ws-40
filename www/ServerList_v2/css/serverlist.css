@@ -35,6 +35,10 @@ html,body{margin:0;height:100%;background:var(--u4a-bg);color:var(--u4a-text);
 .ws-winicon{width:11px;height:11px;display:block;fill:none;stroke:currentColor;stroke-width:1.1;
     stroke-linecap:round;stroke-linejoin:round;transition:stroke var(--ws-dur)}
 .ws-winbtn:active .ws-winicon{transform:scale(.9)}
+/* 최대화 ↔ 복원 아이콘 토글 */
+.ws-winicon--restore{display:none}
+.ws-winbtn.is-maximized .ws-winicon--max{display:none}
+.ws-winbtn.is-maximized .ws-winicon--restore{display:block}
 
 /* ---------- 4) 헤더 / 버튼 / 메뉴 ---------- */
 .ws-header{position:relative;z-index:4;height:var(--u4a-header-h);padding:0 20px;display:flex;align-items:center;justify-content:space-between;gap:16px}

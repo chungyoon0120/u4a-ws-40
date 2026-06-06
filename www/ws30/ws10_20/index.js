@@ -146,7 +146,9 @@ function _wireHostHeader() {
         if (!b) { return; }
         let bMax = false; try { bMax = CW.isMaximized(); } catch (_) {}
         b.title = bMax ? "Restore" : "Maximize";
-        b.innerHTML = bMax ? "&#10697;" : "&#9633;";
+        b.innerHTML = bMax
+            ? '<svg class="u4a-host-winicon" viewBox="0 0 10 10" aria-hidden="true" focusable="false"><rect x="1.3" y="3" width="5.7" height="5.7" rx="1" /><path d="M3.4 3 V2.1 a1 1 0 0 1 1-1 H8.7 a1 1 0 0 1 1 1 V6.4 a1 1 0 0 1 -1 1 H7" /></svg>'
+            : '<svg class="u4a-host-winicon" viewBox="0 0 10 10" aria-hidden="true" focusable="false"><rect x="1.5" y="1.5" width="7" height="7" rx="1.2" /></svg>';
     };
     try { CW.on("maximize", _updMax); CW.on("unmaximize", _updMax); } catch (_) {}
     _updMax();

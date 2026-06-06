@@ -76,6 +76,13 @@
         }
         .u4a-host-winbtn:hover { background: var(--u4a-winbtn-hover-bg, rgba(255, 255, 255, .08)); color: var(--u4a-winbtn-hover-text, #fff); }
         .u4a-host-winbtn.close:hover { background: var(--u4a-winbtn-close-hover-bg, #d83b3b); color: #fff; }
+        .u4a-host-winbtn { display: inline-flex; align-items: center; justify-content: center; padding: 0; }
+        .u4a-host-winicon {
+            width: 11px; height: 11px; display: block;
+            fill: none; stroke: currentColor; stroke-width: 1.1;
+            stroke-linecap: round; stroke-linejoin: round;
+        }
+        .u4a-host-winbtn:active .u4a-host-winicon { transform: scale(.9); }
     </style>
 </head>
 
@@ -92,9 +99,15 @@
                 <span id="u4a-host-title" class="u4a-host-titlebar__text">U4A Workspace</span>
             </div>
             <div class="u4a-host-winbtns">
-                <button id="u4a-host-min" class="u4a-host-winbtn" title="Minimize">&#8211;</button>
-                <button id="u4a-host-max" class="u4a-host-winbtn" title="Maximize">&#9633;</button>
-                <button id="u4a-host-close" class="u4a-host-winbtn close" title="Close">&#10005;</button>
+                <button id="u4a-host-min" class="u4a-host-winbtn" title="Minimize">
+                    <svg class="u4a-host-winicon" viewBox="0 0 10 10" aria-hidden="true" focusable="false"><line x1="1.5" y1="5" x2="8.5" y2="5" /></svg>
+                </button>
+                <button id="u4a-host-max" class="u4a-host-winbtn" title="Maximize">
+                    <svg class="u4a-host-winicon" viewBox="0 0 10 10" aria-hidden="true" focusable="false"><rect x="1.5" y="1.5" width="7" height="7" rx="1.2" /></svg>
+                </button>
+                <button id="u4a-host-close" class="u4a-host-winbtn close" title="Close">
+                    <svg class="u4a-host-winicon" viewBox="0 0 10 10" aria-hidden="true" focusable="false"><line x1="1.6" y1="1.6" x2="8.4" y2="8.4" /><line x1="8.4" y1="1.6" x2="1.6" y2="8.4" /></svg>
+                </button>
             </div>
         </header>
 
