@@ -109,11 +109,14 @@ IPCRENDERER.on("u4a-ws-ux-theme", (event, theme) => {
  *  - 창 버튼(최소화/최대화/닫기)을 여기서 직접 처리. 로그인/메인 iframe 은
  *    더 이상 자체 타이틀바를 두지 않는다.
  *************************************************************/
-var _HOST_HDR_H = "34px";   // 헤더 높이 (#u4a-host-titlebar 와 iframe top 일치)
-
 function _setHostTitle(sText) {
     let el = document.getElementById("u4a-host-title");
     if (el) { el.textContent = sText; }
+}
+
+// 로그인/메인 iframe 이 들어갈 컨텐츠 영역. (구조 누락 시 body 로 안전 폴백)
+function _getContentHost() {
+    return document.getElementById("u4a-content") || document.body;
 }
 
 // 닫기: 현재 iframe(login/main)에 닫기 허용 신호(__prepareClose)를 준 뒤 창을 닫는다.
@@ -151,6 +154,38 @@ function _wireHostHeader() {
 
 
 /*************************************************************
+ * 헤더 드래그 영역 강제 재계산 (진단/우회)
+ * ----------------------------------------------------------
+ *  증상: 로그인 → 메인 전환 후 공통 헤더(#u4a-host-titlebar) 드래그가
+ *        먹지 않다가, 창을 최대화→복원하면(=리사이즈) 다시 동작.
+ *
+ *  로그인/메인은 동일한 부모 헤더를 드래그 영역으로 쓰고, 유일한 차이는
+ *  그 아래 iframe(Login.html→Main.html) 이 로드 후 교체된다는 점뿐이다.
+ *  "리사이즈하면 풀린다"는 관찰은 리사이즈가 트리거하는 무언가(드래그
+ *  영역 재전송으로 추정)가 stale 했음을 뜻한다.
+ *
+ *  → 사용자가 손으로 하던 동작(리사이즈)을 코드로 그대로 재현한다:
+ *    창 크기를 1px 늘렸다 즉시 되돌린다. 같은 tick 에서 원복하므로
+ *    화면 깜빡임은 거의 없고, 리사이즈 이벤트는 OS 로 전달된다.
+ *    이걸로 드래그가 복구되면 원인은 리사이즈로 풀리는 계열이 확정된다.
+ *************************************************************/
+function _kickHostDragRegion() {
+    try {
+        let win = REMOTE.getCurrentWindow();
+        if (!win || win.isDestroyed()) { return; }
+        if (win.isMaximized() || win.isFullScreen()) { return; }   // 이미 리사이즈 상태면 불필요
+        let b = win.getBounds();
+        win.setBounds({ x: b.x, y: b.y, width: b.width + 1, height: b.height });
+        // 같은 tick 에서 원복하면 OS 가 변화없음으로 합쳐버릴 수 있어, 다음 틱에
+        // 되돌려 '두 번의 분리된 리사이즈'를 보장한다(수동 최대화→복원과 동일).
+        setTimeout(function () {
+            try { if (!win.isDestroyed()) { win.setBounds(b); } } catch (_) {}
+        }, 0);
+    } catch (_) {}
+}
+
+
+/*************************************************************
  * 로그인 페이지(iframe) 로드 — UI5 미사용
  *************************************************************/
 function _renderLoginShell() {
@@ -174,10 +209,8 @@ function _renderLoginShell() {
     if (__u4aUxLang) { aParams.push("u4aLang=" + encodeURIComponent(__u4aUxLang)); }
     oFrame.src = "./Login/Login.html" + (aParams.length ? ("?" + aParams.join("&")) : "");
     oFrame.setAttribute("allow", "autoplay");
-    // 공통 헤더 아래 영역만 채운다 (top = 헤더 높이)
-    //  ※ iframe 은 replaced element 라 width/height 를 명시하지 않으면 left/right/bottom 으로
-    //     늘어나지 않고 기본 고유 크기(300x150)로 고정된다. 반드시 크기를 지정한다.
-    oFrame.setAttribute("style", "position:fixed;top:" + _HOST_HDR_H + ";left:0;right:0;bottom:0;width:100vw;height:calc(100vh - " + _HOST_HDR_H + ");border:none;");
+    // 컨텐츠 영역(.u4a-content)을 가득 채운다. 위치/크기는 컨테이너가 결정.
+    oFrame.setAttribute("style", "position:absolute;inset:0;width:100%;height:100%;border:0;");
     _setHostTitle("U4A Workspace - Login");
     // IPC 가 로드 전에 도착했을 수 있으니 로드 완료 후 한번 더 적용
     oFrame.addEventListener("load", function () {
@@ -185,7 +218,7 @@ function _renderLoginShell() {
         _applyUxLangToLogin(__u4aUxLang);
     });
 
-    document.body.appendChild(oFrame);
+    _getContentHost().appendChild(oFrame);
 
 } // end of _renderLoginShell
 
@@ -222,10 +255,8 @@ function _renderMainShell() {
     if (__u4aUxLang) { aParams.push("u4aLang=" + encodeURIComponent(__u4aUxLang)); }
     oFrame.src = "./Main/Main.html" + (aParams.length ? ("?" + aParams.join("&")) : "");
     oFrame.setAttribute("allow", "autoplay");
-    // 공통 헤더 아래 영역만 채운다 (top = 헤더 높이)
-    //  ※ iframe 은 replaced element 라 width/height 를 명시하지 않으면 left/right/bottom 으로
-    //     늘어나지 않고 기본 고유 크기(300x150)로 고정된다. 반드시 크기를 지정한다.
-    oFrame.setAttribute("style", "position:fixed;top:" + _HOST_HDR_H + ";left:0;right:0;bottom:0;width:100vw;height:calc(100vh - " + _HOST_HDR_H + ");border:none;");
+    // 컨텐츠 영역(.u4a-content)을 가득 채운다. 위치/크기는 컨테이너가 결정.
+    oFrame.setAttribute("style", "position:absolute;inset:0;width:100%;height:100%;border:0;");
     _setHostTitle("U4A Workspace - Main");
     // IPC 가 로드 전에 도착했을 수 있으니 로드 완료 후 한번 더 적용
     oFrame.addEventListener("load", function () {
@@ -238,9 +269,13 @@ function _renderMainShell() {
         try { if (typeof setDomBusy === "function") { setDomBusy(""); } } catch (_) {}
         try { if (typeof showLoadingPage === "function") { showLoadingPage(""); } } catch (_) {}
         try { if (typeof setBusy === "function") { setBusy(""); } } catch (_) {}
+
+        // 로그인 iframe 제거 → 메인 iframe 추가로 DOM 이 바뀌어 헤더 드래그 영역이
+        // stale 해진다. 드래그 영역을 강제 재전송해 복구. (창 리사이즈 없이)
+        _kickHostDragRegion();
     });
 
-    document.body.appendChild(oFrame);
+    _getContentHost().appendChild(oFrame);
 
 } // end of _renderMainShell
 
