@@ -31,9 +31,20 @@
     /* 창 제어 버튼(최소화/최대화/닫기)·드래그는 공통 헤더(ws10_20/index.html)로 이동.
        이 페이지는 헤더 아래 영역만 그린다. */
 
-    /* ── 로그오프(빨간 전원) → 창 닫기(세션 창 종료) ── */
+    /* ── 로그오프(빨간 전원) → 확인 팝업 → SAP 로그오프 + 같은 세션 창 전체 종료 ──
+       실제 로그오프(서버 /logoff 비콘)·같은 세션 창 닫기 전파·내 창 닫기는
+       호스트(index.js)의 __hostLogout 이 수행한다.
+       (서버 경로 / sessionKey / IPC 전파가 모두 호스트 전역에 있으므로 호스트에 위임) */
     function _wireLogoff() {
-        on("ws-logoff", function () { try { if (CURRWIN) { CURRWIN.close(); } } catch (_) {} });
+        on("ws-logoff", function () {
+            _openLogoffConfirmPopup(function () {
+                try {
+                    if (P && typeof P.__hostLogout === "function") { P.__hostLogout(); return; }
+                } catch (_) {}
+                // 폴백(비-Electron 프리뷰 / 호스트 미연결): 내 창만 닫기
+                try { if (CURRWIN) { CURRWIN.close(); } } catch (_) {}
+            });
+        });
     }
 
     /* ── 새 창 (Ctrl+N) → 동일 세션 메인 창 추가 오픈 ──
@@ -226,6 +237,45 @@
     //  반환 true = 팝업을 띄움(닫기는 onConfirm 콜백으로), false = 띄우지 못함(호스트가 폴백 처리).
     try { window.__confirmExit = function (onConfirm) { return _openExitConfirmPopup(onConfirm); }; } catch (_) {}
 
+    /* ── 로그오프 확인 팝업 (종료 확인 팝업과 동일 스타일) ──
+       확인 시 onConfirm 콜백 호출(호스트 __hostLogout 위임). 모달을 못 띄우면 바로 진행. */
+    function _openLogoffConfirmPopup(onConfirm) {
+        var body =
+            '<div class="ws-confirm">' +
+            '  <span class="ws-confirm__badge" aria-hidden="true">' + _ICON_WARN + '</span>' +
+            '  <div class="ws-confirm__main">' +
+            '    <div class="ws-confirm__title">로그오프 하시겠습니까?</div>' +
+            '    <div class="ws-confirm__desc">저장하지 않은 작업은 유실되며, 같은 세션의 모든 창이 닫힙니다.</div>' +
+            '  </div>' +
+            '</div>';
+
+        var foot =
+            '<button type="button" class="ws-modal__btn ws-modal__btn--ghost" data-cancel>취소</button>' +
+            '<button type="button" class="ws-modal__btn ws-modal__btn--danger" data-confirm>로그오프</button>';
+
+        var m = _modalShell("로그오프 확인", "", body, foot);
+        if (!m) {
+            // 모달 루트가 없으면(프리뷰 등) 확인 없이 바로 진행
+            try { if (typeof onConfirm === "function") { onConfirm(); } } catch (_) {}
+            return false;
+        }
+
+        var btnConfirm = m.back.querySelector("[data-confirm]");
+        var btnCancel  = m.back.querySelector("[data-cancel]");
+
+        if (btnConfirm) {
+            btnConfirm.addEventListener("click", function () {
+                m.close();
+                try { if (typeof onConfirm === "function") { onConfirm(); } } catch (_) {}
+            });
+        }
+        if (btnCancel) {
+            btnCancel.addEventListener("click", function () { m.close(); });
+        }
+        try { if (btnConfirm) { btnConfirm.focus(); } } catch (_) {}
+        return true;
+    }
+
     function _openInfoPopup() {
         var rows = _collectInfo();
         var sList = rows.map(function (r, i) {
@@ -239,13 +289,24 @@
     /* ── 옵션 팝업: 테마 변경(퍼플/다크/화이트) ── */
     var _THEMES = ["purple", "dark", "white"];
 
-    // 이 창의 SYSID (ServerList 가 넣은 webPreferences.SYSID 우선 → serverInfo/userInfo)
+    // to-be: 창(webContents)의 URL 쿼리스트링을 객체로 파싱. (getWebPreferences 대체)
+    //  - Electron 업그레이드 후 getWebPreferences() 로 커스텀 값 추출이 불가 → getURL() 의 쿼리스트링을 읽는다.
+    //  - 호스트(index.js)의 _parseWinQuery 와 동일 개념. 파서는 부모 전역 WSUTIL.QueryString 재사용.
+    function _winQuery(wc) {
+        try {
+            var QS = P && P.WSUTIL && P.WSUTIL.QueryString;
+            if (QS && wc && typeof wc.getURL === "function") { return QS.parse(wc.getURL()) || {}; }
+        } catch (_) {}
+        return {};
+    }
+
+    // 이 창의 SYSID (창 URL 쿼리스트링의 SYSID 우선 → serverInfo/userInfo)
     function _currentSysid() {
         var P = window.parent || {};
         try {
             var CW = P.REMOTE && P.REMOTE.getCurrentWindow && P.REMOTE.getCurrentWindow();
-            var wp = CW && CW.webContents && CW.webContents.getWebPreferences && CW.webContents.getWebPreferences();
-            if (wp && wp.SYSID) { return wp.SYSID; }
+            var sSysid = CW && CW.webContents && _winQuery(CW.webContents).SYSID;
+            if (sSysid) { return sSysid; }
         } catch (_) {}
         try { var si = P.getServerInfo && P.getServerInfo(); if (si && si.SYSID) { return si.SYSID; } } catch (_) {}
         try { var ui = P.getUserInfo && P.getUserInfo(); if (ui && ui.SYSID) { return ui.SYSID; } } catch (_) {}
@@ -273,7 +334,7 @@
 
     // 같은 SYSID 의 다른 열린 창들(로그인/메인)에 테마 실시간 동기화.
     //   각 창(index.html)은 IPC 'u4a-ws-ux-theme' 수신 → _applyUxThemeToLogin 로 적용(ServerList 가 쓰는 채널 재사용).
-    //   대상 식별 = webPreferences.SYSID 일치(ServerList 윈도우는 SYSID 없어 자동 제외), 자기 자신 제외.
+    //   대상 식별 = 창 URL 쿼리스트링의 SYSID 일치(ServerList 윈도우는 SYSID 없어 자동 제외), 자기 자신 제외.
     function _broadcastSysidTheme(theme) {
         try {
             var P = window.parent || {};
@@ -289,8 +350,8 @@
                     if (!w || w.isDestroyed() || w.id === selfId) { return; }
                     var wc = w.webContents;
                     if (!wc) { return; }
-                    var wp = wc.getWebPreferences ? wc.getWebPreferences() : (wc.getLastWebPreferences ? wc.getLastWebPreferences() : null);
-                    if (wp && wp.SYSID === sysid) { wc.send("u4a-ws-ux-theme", theme); }
+                    // to-be: 대상 창의 SYSID 는 webPreferences 가 아니라 창 URL 쿼리스트링에서 읽는다.
+                    if (_winQuery(wc).SYSID === sysid) { wc.send("u4a-ws-ux-theme", theme); }
                 } catch (_) {}
             });
         } catch (_) {}

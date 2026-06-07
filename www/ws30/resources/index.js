@@ -699,6 +699,20 @@ oAPP.views = window?.oAPP?.views || {};
         // 브라우저 상단 메뉴 없애기
         oBrowserWindow.setMenu(null);
 
+        // 현재 UX 테마/언어를 새 창에 전달 → 새 창(공통 헤더 포함)이 첫 렌더부터 동일 테마로 뜨도록(무플래시).
+        //  (ServerList 가 로그인 창을 열 때 u4aTheme/u4aLang 을 넘기는 것과 동일 메커니즘)
+        //  - 테마: 호스트 문서에 실제 적용된 data-theme 우선 → 폴백 window.__u4aUxTheme
+        //  - 언어: window.__u4aUxLang
+        let sUxTheme = "";
+        try {
+            let t = document.documentElement.getAttribute("data-theme");
+            if (t === "dark" || t === "white" || t === "purple") { sUxTheme = t; }
+        } catch (_) {}
+        if (!sUxTheme) { try { sUxTheme = window.__u4aUxTheme || ""; } catch (_) {} }
+
+        let sUxLang = "";
+        try { let l = window.__u4aUxLang; if (l === "ko" || l === "en") { sUxLang = l; } } catch (_) {}
+
         let oQueryParams = {
             browserkey: oBrowserOptions?.webPreferences?.browserkey,
             sessionKey: oBrowserOptions?.webPreferences?.partition,
@@ -706,6 +720,8 @@ oAPP.views = window?.oAPP?.views || {};
             SYSID: process.USERINFO.SYSID,
             USERINFO: process.USERINFO,
         };
+        if (sUxTheme) { oQueryParams.u4aTheme = sUxTheme; }
+        if (sUxLang)  { oQueryParams.u4aLang  = sUxLang; }
 
         // URL에 QueryString 파라미터를 적용한다.
         let sLoadUrl = WSUTIL.QueryString.build(PATHINFO.MAINFRAME, oQueryParams);

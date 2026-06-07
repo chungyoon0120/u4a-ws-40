@@ -121,11 +121,25 @@ function _getContentHost() {
     return document.getElementById("u4a-content") || document.body;
 }
 
-// 이 호스트 창의 SYSID. (ServerList 가 넣은 webPreferences.SYSID 우선 → 서버/유저 정보)
+// ★ to-be 공통: 창(webContents)의 URL 쿼리스트링을 객체로 파싱한다.
+//  - Electron 업그레이드 후 BrowserWindow 의 getWebPreferences() 로 커스텀 값(SYSID/sessionKey 등)
+//    추출이 불가해졌다. 대신 모든 창이 loadURL 시 쿼리스트링으로 실어보낸 값
+//    (browserkey/sessionKey/OBJTY/SYSID)을 getURL() → QueryString.parse 로 읽는다.
+//  - 동일 패턴: WSUTIL.getCheckAlreadyOpenWindow (ws_util.js)
+function _parseWinQuery(wc) {
+    try {
+        if (wc && typeof wc.getURL === "function") {
+            return WSUTIL.QueryString.parse(wc.getURL()) || {};
+        }
+    } catch (_) {}
+    return {};
+}
+
+// 이 호스트 창의 SYSID. (창 URL 쿼리스트링의 SYSID 우선 → 서버/유저 정보 폴백)
 function _getHostSysid() {
     try {
-        let wp = REMOTE.getCurrentWindow().webContents.getWebPreferences();
-        if (wp && wp.SYSID) { return wp.SYSID; }
+        let sSysid = _parseWinQuery(REMOTE.getCurrentWindow().webContents).SYSID;
+        if (sSysid) { return sSysid; }
     } catch (_) {}
     try { let si = getServerInfo(); if (si && si.SYSID) { return si.SYSID; } } catch (_) {}
     try { let ui = getUserInfo();  if (ui && ui.SYSID) { return ui.SYSID; } } catch (_) {}
@@ -134,6 +148,7 @@ function _getHostSysid() {
 
 // 같은 SYSID 로 떠있는 "다른" 창의 개수. (자기 자신 / 파괴된 창 제외)
 //  - SYSID 없는 창(ServerList 등)은 매칭되지 않아 자동 제외된다.
+//  - to-be: 각 창의 SYSID 는 webPreferences 가 아니라 창 URL 쿼리스트링에서 읽는다.
 function _countOtherSameSysidWindows() {
     let n = 0;
     try {
@@ -148,20 +163,37 @@ function _countOtherSameSysidWindows() {
             let w = aWins[i];
             try {
                 if (!w || w.isDestroyed() || w.id === iSelfId) { continue; }
-                let wc = w.webContents;
-                if (!wc) { continue; }
-                let wp = wc.getWebPreferences ? wc.getWebPreferences()
-                       : (wc.getLastWebPreferences ? wc.getLastWebPreferences() : null);
-                if (wp && wp.SYSID === sSysid) { n++; }
+                if (_parseWinQuery(w.webContents).SYSID === sSysid) { n++; }
             } catch (_) {}
         }
     } catch (_) {}
     return n;
 }
 
-// 실제 창 닫기: 현재 iframe(login/main)에 닫기 허용 신호(__prepareClose)를 준 뒤 창을 닫는다.
+// 현재 창에 종속된(자식) 팝업 창들을 모두 닫는다. (레거시 fnChildWindowAllClose 동일)
+//  - to-be: Electron 네이티브 부모/자식 관계(getChildWindows) 사용 → getWebPreferences 불필요.
+//  - ★ 향후 팝업을 BrowserWindow({ parent: 현재창 }) 로 띄우기만 하면 자동으로 여기에 수집되어
+//    로그오프/닫기 시 함께 닫힌다. (Electron 도 부모가 닫히면 자식을 자동 종료하지만,
+//    닫기 순서를 보장하기 위해 창을 닫기 전에 명시적으로 먼저 닫는다.)
+function _closeChildWindows() {
+    try {
+        let oCurrWin = REMOTE.getCurrentWindow();
+        if (!oCurrWin || oCurrWin.isDestroyed()) { return; }
+        let aChild = oCurrWin.getChildWindows() || [];
+        for (let i = 0; i < aChild.length; i++) {
+            let oChild = aChild[i];
+            try { if (oChild && !oChild.isDestroyed()) { oChild.close(); } } catch (_) {}
+        }
+    } catch (_) {}
+}
+
+// 실제 창 닫기: 종속 팝업을 먼저 닫고, 현재 iframe(login/main)에 닫기 허용 신호(__prepareClose)를
+// 준 뒤 창을 닫는다. (로그오프/닫기 버튼/세션 종료 등 모든 닫기 경로가 이 함수를 거친다)
 //  - 로그인 페이지는 onbeforeunload 가드(isPressWindowClose)가 있어 신호 없이는 닫히지 않음.
 function _doHostClose() {
+    // 종속(자식) 팝업 창들을 먼저 닫는다. (모든 닫기 경로 공통)
+    _closeChildWindows();
+
     let f = document.getElementById("ws_login_frame") || document.getElementById("ws_main_frame");
     try {
         if (f && f.contentWindow && typeof f.contentWindow.__prepareClose === "function") {
@@ -196,6 +228,111 @@ function _hostClose() {
     }
 
     _doHostClose();
+}
+
+
+/*************************************************************
+ * 로그오프 (메인 화면 빨간 전원 버튼 → Main.js 가 parent.__hostLogout() 호출)
+ * ----------------------------------------------------------
+ *  레거시 oAPP.events.ev_Logout 와 동일한 순서/규약:
+ *    1) 같은 sessionKey 의 "다른" 창들에 닫기 전파 (채널 if-browser-close, ACTCD "A")
+ *    2) SAP 백엔드 로그오프 (navigator.sendBeacon → <serverPath>/logoff)
+ *    3) 비콘 후 내 창 닫기
+ *  ※ to-be: 각 창의 sessionKey/browserKey 는 webPreferences 가 아니라
+ *           창 URL 쿼리스트링(_parseWinQuery)에서 읽는다.
+ *  ※ 전파 transport: 레거시의 remote-ipcMain 공유리스너 대신, 이 프로젝트의 테마 동기화와
+ *     동일하게 [대상 창 webContents.send] + [수신측 IPCRENDERER.on] 방식을 사용한다.
+ *************************************************************/
+
+// 이 호스트 창의 sessionKey (창 URL 쿼리스트링 우선 → 저장값 폴백)
+function _getHostSessionKey() {
+    try { let k = _parseWinQuery(REMOTE.getCurrentWindow().webContents).sessionKey; if (k) { return k; } } catch (_) {}
+    try { let k = getSessionKey(); if (k) { return k; } } catch (_) {}
+    return "";
+}
+
+// 이 호스트 창의 browserKey (창 URL 쿼리스트링 우선 → 저장값 폴백)
+function _getHostBrowserKey() {
+    try { let k = _parseWinQuery(REMOTE.getCurrentWindow().webContents).browserkey; if (k) { return k; } } catch (_) {}
+    try { let k = getBrowserKey(); if (k) { return k; } } catch (_) {}
+    return "";
+}
+
+// SAP 백엔드 로그오프 (레거시 sendServerExit 동일: navigator.sendBeacon fire-and-forget).
+//  - URL: getServerPath() + "/logoff" (+ APPID/SSID 쿼리). 비콘 후 약간의 지연을 두고 콜백.
+function _sendServerLogoff(fnCallback) {
+    let bSent = false;
+    try {
+        let sUrl = getServerPath() + "/logoff";
+
+        let sAppId = "";
+        try { let a = getAppInfo(); if (a && a.APPID) { sAppId = a.APPID; } } catch (_) {}
+
+        let sSsid = "";
+        try { sSsid = getSSID() || ""; } catch (_) {}
+
+        let aQs = [];
+        if (sAppId) { aQs.push("APPID=" + encodeURIComponent(sAppId)); }
+        if (sSsid)  { aQs.push("SSID="  + encodeURIComponent(sSsid)); }
+        let sBeaconUrl = aQs.length ? (sUrl + "?" + aQs.join("&")) : sUrl;
+
+        if (navigator && typeof navigator.sendBeacon === "function") {
+            navigator.sendBeacon(sBeaconUrl);
+            bSent = true;
+        }
+    } catch (_) {}
+
+    // 비콘은 fire-and-forget 이므로 서버 반영 시간을 약간 준 뒤 닫는다(레거시 fnSleep(500) 동일).
+    setTimeout(function () {
+        try { if (typeof fnCallback === "function") { fnCallback(); } } catch (_) {}
+    }, bSent ? 500 : 0);
+}
+
+// 로그오프 진입점 (Main.js 의 빨간 전원 버튼 → parent.__hostLogout()).
+function __hostLogout() {
+
+    let sSessKey  = _getHostSessionKey();
+    let sBrowsKey = _getHostBrowserKey();
+
+    // 1) 같은 세션의 "다른" 창들에 닫기 전파 (if-browser-close / ACTCD "A")
+    try {
+        let iSelfId = -1;
+        try { iSelfId = REMOTE.getCurrentWindow().id; } catch (_) {}
+
+        let aWins = REMOTE.BrowserWindow.getAllWindows() || [];
+        for (let i = 0; i < aWins.length; i++) {
+            let w = aWins[i];
+            try {
+                if (!w || w.isDestroyed() || w.id === iSelfId) { continue; }
+                let wc = w.webContents;
+                if (!wc || typeof wc.send !== "function") { continue; }
+                if (_parseWinQuery(wc).sessionKey !== sSessKey) { continue; }   // 같은 세션만
+                wc.send("if-browser-close", { ACTCD: "A", SESSKEY: sSessKey, BROWSKEY: sBrowsKey });
+            } catch (_) {}
+        }
+    } catch (_) {}
+
+    // 2) SAP 로그오프 → 3) 비콘 후 내 창 닫기
+    _sendServerLogoff(function () { _doHostClose(); });
+}
+
+// 같은 세션 창 닫기 수신 (레거시 fnIpcMain_if_browser_close 규약 동일).
+//  - ACTCD "A": 보낸 창 제외, 같은 세션이면 내 창 닫기
+//  - ACTCD "B": 전달된 browserKey 가 나와 같을 때만 내 창 닫기
+function _onIpcBrowserClose(event, res) {
+    try {
+        if (!res || res.SESSKEY !== _getHostSessionKey()) { return; }   // 다른 세션이면 무시
+
+        let sMyBrowsKey = _getHostBrowserKey();
+
+        if (res.ACTCD === "A") {
+            if (sMyBrowsKey && sMyBrowsKey === res.BROWSKEY) { return; }   // 보낸 창(나)은 제외
+            _doHostClose();
+        } else if (res.ACTCD === "B") {
+            if (sMyBrowsKey !== res.BROWSKEY) { return; }
+            _doHostClose();
+        }
+    } catch (_) {}
 }
 
 function _wireHostHeader() {
@@ -380,6 +517,12 @@ window.loadWS30MainPage = loadWS30MainPage;
 
 // 공통 헤더 창버튼 연결 (index.js 는 body 끝에서 로드되므로 헤더 DOM 이 이미 존재)
 _wireHostHeader();
+
+// 메인 화면(Main.js) 빨간 전원 버튼이 호출하는 로그오프 진입점 공개
+try { window.__hostLogout = __hostLogout; } catch (_) {}
+
+// 같은 세션 창 닫기 전파 수신 (테마/언어 IPC 와 동일하게 IPCRENDERER.on 사용)
+try { IPCRENDERER.on("if-browser-close", _onIpcBrowserClose); } catch (_) {}
 
 
 /*************************************************************
