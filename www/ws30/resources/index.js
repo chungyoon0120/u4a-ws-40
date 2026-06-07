@@ -761,9 +761,10 @@ oAPP.views = window?.oAPP?.views || {};
                 return;
             }
 
-            // oBrowserWindow.setOpacity(1.0);
+            // 일반 새 창: 생성 시 opacity 0 으로 둔 창을 보이게 복원하고 표시한다.
+            oBrowserWindow.setOpacity(1.0);
 
-            // oBrowserWindow.show();
+            oBrowserWindow.show();
 
         });
 

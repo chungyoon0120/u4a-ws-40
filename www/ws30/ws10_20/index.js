@@ -121,9 +121,47 @@ function _getContentHost() {
     return document.getElementById("u4a-content") || document.body;
 }
 
-// 닫기: 현재 iframe(login/main)에 닫기 허용 신호(__prepareClose)를 준 뒤 창을 닫는다.
+// 이 호스트 창의 SYSID. (ServerList 가 넣은 webPreferences.SYSID 우선 → 서버/유저 정보)
+function _getHostSysid() {
+    try {
+        let wp = REMOTE.getCurrentWindow().webContents.getWebPreferences();
+        if (wp && wp.SYSID) { return wp.SYSID; }
+    } catch (_) {}
+    try { let si = getServerInfo(); if (si && si.SYSID) { return si.SYSID; } } catch (_) {}
+    try { let ui = getUserInfo();  if (ui && ui.SYSID) { return ui.SYSID; } } catch (_) {}
+    return "";
+}
+
+// 같은 SYSID 로 떠있는 "다른" 창의 개수. (자기 자신 / 파괴된 창 제외)
+//  - SYSID 없는 창(ServerList 등)은 매칭되지 않아 자동 제외된다.
+function _countOtherSameSysidWindows() {
+    let n = 0;
+    try {
+        let sSysid = _getHostSysid();
+        if (!sSysid) { return 0; }
+
+        let iSelfId = -1;
+        try { iSelfId = REMOTE.getCurrentWindow().id; } catch (_) {}
+
+        let aWins = REMOTE.BrowserWindow.getAllWindows() || [];
+        for (let i = 0; i < aWins.length; i++) {
+            let w = aWins[i];
+            try {
+                if (!w || w.isDestroyed() || w.id === iSelfId) { continue; }
+                let wc = w.webContents;
+                if (!wc) { continue; }
+                let wp = wc.getWebPreferences ? wc.getWebPreferences()
+                       : (wc.getLastWebPreferences ? wc.getLastWebPreferences() : null);
+                if (wp && wp.SYSID === sSysid) { n++; }
+            } catch (_) {}
+        }
+    } catch (_) {}
+    return n;
+}
+
+// 실제 창 닫기: 현재 iframe(login/main)에 닫기 허용 신호(__prepareClose)를 준 뒤 창을 닫는다.
 //  - 로그인 페이지는 onbeforeunload 가드(isPressWindowClose)가 있어 신호 없이는 닫히지 않음.
-function _hostClose() {
+function _doHostClose() {
     let f = document.getElementById("ws_login_frame") || document.getElementById("ws_main_frame");
     try {
         if (f && f.contentWindow && typeof f.contentWindow.__prepareClose === "function") {
@@ -131,6 +169,33 @@ function _hostClose() {
         }
     } catch (_) {}
     try { REMOTE.getCurrentWindow().close(); } catch (_) {}
+}
+
+// 닫기 진입점:
+//  - 로그인 페이지: 종전대로 바로 닫는다(세션 진입 전이므로 종료 확인 없음).
+//  - 메인 페이지: 같은 SYSID 의 다른 창이 하나라도 있으면 바로 닫고,
+//    이 창이 해당 SYSID 의 "마지막 창"이면 메인 프레임의 스타일 종료 확인 팝업을 띄운다.
+function _hostClose() {
+
+    let oMainFrame = document.getElementById("ws_main_frame");
+
+    // 메인 페이지(로그인 이후) + 같은 SYSID 가 이 창 하나뿐 → 종료 확인 팝업
+    if (oMainFrame && _countOtherSameSysidWindows() === 0) {
+        try {
+            // 메인 프레임(Main.js)의 스타일 모달로 확인. 종료 선택 시 콜백으로 실제 닫기.
+            if (oMainFrame.contentWindow && typeof oMainFrame.contentWindow.__confirmExit === "function") {
+                let bShown = oMainFrame.contentWindow.__confirmExit(function () { _doHostClose(); });
+                if (bShown) {
+                    return;   // 팝업 표시됨 — 닫기는 콜백에서 처리(취소 시 닫지 않음)
+                }
+            }
+        } catch (_) {}
+        // 폴백: 팝업 함수를 못 쓰면 그냥 닫는다.
+        _doHostClose();
+        return;
+    }
+
+    _doHostClose();
 }
 
 function _wireHostHeader() {
