@@ -109,9 +109,11 @@ IPCRENDERER.on("u4a-ws-ux-theme", (event, theme) => {
  *  - 창 버튼(최소화/최대화/닫기)을 여기서 직접 처리. 로그인/메인 iframe 은
  *    더 이상 자체 타이틀바를 두지 않는다.
  *************************************************************/
+// 공통 헤더 컴포넌트 인스턴스 (U4AHeader.mount 결과). 창버튼/제목/드래그복구를 제공.
+var __u4aHeader = null;
+
 function _setHostTitle(sText) {
-    let el = document.getElementById("u4a-host-title");
-    if (el) { el.textContent = sText; }
+    if (__u4aHeader) { __u4aHeader.setTitle(sText); }
 }
 
 // 로그인/메인 iframe 이 들어갈 컨텐츠 영역. (구조 누락 시 body 로 안전 폴백)
@@ -132,44 +134,28 @@ function _hostClose() {
 }
 
 function _wireHostHeader() {
-    let CW = null;
-    try { CW = REMOTE.getCurrentWindow(); } catch (_) {}
-    if (!CW) { return; }
-
-    let on = function (id, fn) { let b = document.getElementById(id); if (b) { b.addEventListener("click", fn); } };
-    on("u4a-host-min", function () { try { CW.minimize(); } catch (_) {} });
-    on("u4a-host-max", function () { try { CW.isMaximized() ? CW.unmaximize() : CW.maximize(); } catch (_) {} });
-    on("u4a-host-close", function () { _hostClose(); });
-
-    let _updMax = function () {
-        let b = document.getElementById("u4a-host-max");
-        if (!b) { return; }
-        let bMax = false; try { bMax = CW.isMaximized(); } catch (_) {}
-        b.title = bMax ? "Restore" : "Maximize";
-        b.innerHTML = bMax
-            ? '<svg class="u4a-host-winicon" viewBox="0 0 10 10" aria-hidden="true" focusable="false"><rect x="1.3" y="3" width="5.7" height="5.7" rx="1" /><path d="M3.4 3 V2.1 a1 1 0 0 1 1-1 H8.7 a1 1 0 0 1 1 1 V6.4 a1 1 0 0 1 -1 1 H7" /></svg>'
-            : '<svg class="u4a-host-winicon" viewBox="0 0 10 10" aria-hidden="true" focusable="false"><rect x="1.5" y="1.5" width="7" height="7" rx="1.2" /></svg>';
-    };
-    try { CW.on("maximize", _updMax); CW.on("unmaximize", _updMax); } catch (_) {}
-    _updMax();
+    if (typeof U4AHeader === "undefined" || !U4AHeader.mount) {
+        try { zconsole.warn("_wireHostHeader", "U4AHeader 미로드 — 공통 헤더 컴포넌트 확인 필요"); } catch (_) {}
+        return;
+    }
+    // 공통 헤더 단일 소스로 렌더 + 창제어 연결. 닫기는 호스트 전용 _hostClose 사용.
+    __u4aHeader = U4AHeader.mount("u4a-host-titlebar", {
+        title:   "U4A Workspace",
+        logo:    "../../img/logo.png",
+        onClose: _hostClose
+    });
 }
 
 
 /*************************************************************
- * 헤더 드래그 영역 강제 재계산 (진단/우회)
+ * ★ 드래그 영역 재계산 (iframe 교체 후 stale 우회)
  * ----------------------------------------------------------
- *  증상: 로그인 → 메인 전환 후 공통 헤더(#u4a-host-titlebar) 드래그가
- *        먹지 않다가, 창을 최대화→복원하면(=리사이즈) 다시 동작.
- *
- *  로그인/메인은 동일한 부모 헤더를 드래그 영역으로 쓰고, 유일한 차이는
- *  그 아래 iframe(Login.html→Main.html) 이 로드 후 교체된다는 점뿐이다.
- *  "리사이즈하면 풀린다"는 관찰은 리사이즈가 트리거하는 무언가(드래그
- *  영역 재전송으로 추정)가 stale 했음을 뜻한다.
- *
- *  → 사용자가 손으로 하던 동작(리사이즈)을 코드로 그대로 재현한다:
- *    창 크기를 1px 늘렸다 즉시 되돌린다. 같은 tick 에서 원복하므로
- *    화면 깜빡임은 거의 없고, 리사이즈 이벤트는 OS 로 전달된다.
- *    이걸로 드래그가 복구되면 원인은 리사이즈로 풀리는 계열이 확정된다.
+ *  증상: 로그인→메인 iframe 교체 후 공통 헤더(#u4a-host-titlebar)의
+ *        -webkit-app-region 드래그가 안 먹다가, 창을 최대화 한번 하면 풀린다.
+ *  원인: iframe DOM 교체로 Electron 의 드래그 영역 캐시가 stale.
+ *  해결: 창을 1px 살짝 키웠다 두 프레임 뒤 원복 → OS 에 '분리된 리사이즈'를
+ *        흘려 드래그 영역을 강제 재계산 (수동 최대화→복원과 동일 효과).
+ *  ※ _test 하니스에서 검증된 방식 그대로 이식.
  *************************************************************/
 function _kickHostDragRegion() {
     try {
@@ -177,12 +163,12 @@ function _kickHostDragRegion() {
         if (!win || win.isDestroyed()) { return; }
         if (win.isMaximized() || win.isFullScreen()) { return; }   // 이미 리사이즈 상태면 불필요
         let b = win.getBounds();
-        win.setBounds({ x: b.x, y: b.y, width: b.width + 1, height: b.height });
-        // 같은 tick 에서 원복하면 OS 가 변화없음으로 합쳐버릴 수 있어, 다음 틱에
-        // 되돌려 '두 번의 분리된 리사이즈'를 보장한다(수동 최대화→복원과 동일).
-        setTimeout(function () {
-            try { if (!win.isDestroyed()) { win.setBounds(b); } } catch (_) {}
-        }, 0);
+        win.setBounds({ x: b.x, y: b.y, width: b.width + 1, height: b.height + 1 });
+        requestAnimationFrame(function () {
+            requestAnimationFrame(function () {
+                try { if (!win.isDestroyed()) { win.setBounds(b); } } catch (_) {}
+            });
+        });
     } catch (_) {}
 }
 
@@ -218,6 +204,8 @@ function _renderLoginShell() {
     oFrame.addEventListener("load", function () {
         _applyUxThemeToLogin(__u4aUxTheme);
         _applyUxLangToLogin(__u4aUxLang);
+        // iframe 교체 후 드래그 영역 재계산 (stale 우회)
+        setTimeout(_kickHostDragRegion, 50);
     });
 
     _getContentHost().appendChild(oFrame);
@@ -272,9 +260,8 @@ function _renderMainShell() {
         try { if (typeof showLoadingPage === "function") { showLoadingPage(""); } } catch (_) {}
         try { if (typeof setBusy === "function") { setBusy(""); } } catch (_) {}
 
-        // 로그인 iframe 제거 → 메인 iframe 추가로 DOM 이 바뀌어 헤더 드래그 영역이
-        // stale 해진다. 드래그 영역을 강제 재전송해 복구. (창 리사이즈 없이)
-        _kickHostDragRegion();
+        // iframe 교체 후 드래그 영역 재계산 (stale 우회) — _test 검증 방식
+        setTimeout(_kickHostDragRegion, 50);
     });
 
     _getContentHost().appendChild(oFrame);

@@ -32,7 +32,6 @@ body.u4aWsLoginBody {
     padding: 0 6px 0 12px;
     background: var(--u4a-titlebar-bg);
     border-bottom: 1px solid var(--u4a-titlebar-border);
-    backdrop-filter: var(--u4a-titlebar-blur);
     -webkit-app-region: drag; user-select: none;
 }
 .ws-titlebar__brand { display: flex; align-items: center; gap: 8px; }
@@ -66,7 +65,7 @@ body.u4aWsLoginBody {
     border: 1px solid var(--u4a-line-strong);
     border-radius: var(--u4a-radius);
     box-shadow: var(--u4a-shadow);
-    backdrop-filter: blur(16px);
+    /* backdrop-filter 제거: iframe 내 blur 레이어가 부모 창 app-region 드래그를 죽임 */
     overflow: hidden;
     transition: opacity .5s linear;
 }
@@ -192,16 +191,15 @@ body.u4aWsLoginBody {
     border: 1px solid var(--u4a-line-strong); border-radius: 12px;
     padding: 10px 16px; font-size: 13px; box-shadow: var(--u4a-toast-shadow);
     white-space: pre-line; max-width: 80vw;
-    animation: ws-toast-in .2s var(--u4a-ease);
+    /* animation 제거: 컴포지팅 레이어가 부모 창 드래그(app-region)를 흔들 수 있어 정적 표시 */
 }
 .ws-toast.is-error { border-color: var(--u4a-input-invalid-border); }
-@keyframes ws-toast-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 
 /* ---------- Modal ---------- */
 .ws-modal-backdrop {
     position: fixed; inset: 0; z-index: 9500;
     display: flex; align-items: center; justify-content: center;
-    background: var(--u4a-modal-backdrop); backdrop-filter: blur(2px);
+    background: var(--u4a-modal-backdrop);
     opacity: 0; transition: opacity var(--u4a-dur);
 }
 .ws-modal-backdrop.is-open { opacity: 1; }
@@ -209,7 +207,7 @@ body.u4aWsLoginBody {
     width: 100%; max-width: 460px; margin: 16px;
     background: var(--u4a-modal-bg); background-image: var(--u4a-modal-overlay);
     border: 1px solid var(--u4a-line-strong); border-radius: 16px;
-    box-shadow: var(--u4a-modal-shadow); backdrop-filter: blur(16px);
+    box-shadow: var(--u4a-modal-shadow);
     transform: translateY(10px) scale(.98); transition: transform var(--u4a-dur);
     overflow: hidden;
 }

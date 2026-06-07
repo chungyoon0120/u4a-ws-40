@@ -16,29 +16,8 @@ html,body{margin:0;height:100%;background:var(--u4a-bg);color:var(--u4a-text);
 .ws-app:before{content:"";position:absolute;inset:0;pointer-events:none;
     background:linear-gradient(var(--u4a-grid) 1px,transparent 1px),linear-gradient(90deg,var(--u4a-grid-2) 1px,transparent 1px);
     background-size:32px 32px,32px 32px;opacity:var(--u4a-grid-opacity);mix-blend-mode:overlay}
-.ws-titlebar{position:relative;z-index:5;height:var(--u4a-titlebar-h);display:flex;align-items:center;justify-content:space-between;
-    padding:0 6px 0 10px;background:var(--u4a-titlebar-bg);backdrop-filter:var(--u4a-titlebar-blur);
-    -webkit-app-region:drag;color:var(--u4a-titlebar-text);border-bottom:1px solid var(--u4a-titlebar-border);user-select:none}
-.ws-titlebar__brand{display:flex;align-items:center;gap:8px;font-weight:700;letter-spacing:.02em}
-/* 로고: <img class="ws-brand-mark" src="../img/logo.png"> 형태로 사용.
-   파일이 누락되면 onerror 로 .is-fallback 이 붙고, 기존 그라디언트 사각형이 표시됨. */
-.ws-brand-mark{width:18px;height:18px;border-radius:4px;object-fit:contain;display:inline-block;
-    background:transparent;box-shadow:none;flex:0 0 auto;image-rendering:auto;-webkit-user-drag:none;user-select:none}
-.ws-brand-mark.is-fallback{width:14px;height:14px;background:var(--u4a-accent-grad);box-shadow:var(--u4a-brand-glow)}
-.ws-titlebar__text{font-size:12.5px;color:var(--u4a-titlebar-text)}
-.ws-winbtns{display:flex;gap:2px;-webkit-app-region:no-drag}
-.ws-winbtn{width:38px;height:var(--u4a-titlebar-h);border:none;background:transparent;color:var(--u4a-winbtn);
-    cursor:pointer;font-size:12px;border-radius:6px;transition:background var(--ws-dur),color var(--ws-dur);
-    display:flex;align-items:center;justify-content:center;padding:0}
-.ws-winbtn:hover{background:var(--u4a-winbtn-hover-bg);color:var(--u4a-winbtn-hover-text)}
-.ws-winbtn.close:hover{background:var(--u4a-winbtn-close-hover-bg);color:#fff}
-.ws-winicon{width:11px;height:11px;display:block;fill:none;stroke:currentColor;stroke-width:1.1;
-    stroke-linecap:round;stroke-linejoin:round;transition:stroke var(--ws-dur)}
-.ws-winbtn:active .ws-winicon{transform:scale(.9)}
-/* 최대화 ↔ 복원 아이콘 토글 */
-.ws-winicon--restore{display:none}
-.ws-winbtn.is-maximized .ws-winicon--max{display:none}
-.ws-winbtn.is-maximized .ws-winicon--restore{display:block}
+/* 타이틀바(.ws-titlebar / .ws-winbtn / .ws-winicon …) 스타일은
+   common/header/u4a-header.css 단일 소스로 이동 — U4AHeader.mount() 가 #u4a-header 에 렌더한다. */
 
 /* ---------- 4) 헤더 / 버튼 / 메뉴 ---------- */
 .ws-header{position:relative;z-index:4;height:var(--u4a-header-h);padding:0 20px;display:flex;align-items:center;justify-content:space-between;gap:16px}

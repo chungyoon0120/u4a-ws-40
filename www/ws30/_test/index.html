@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>U4A Workspace #Main</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+
+    <script>
+        // FOUC 방지: data-theme 즉시 적용 (URL u4aTheme → 없으면 purple)
+        (function () {
+            try { var q = new URLSearchParams(location.search).get("u4aTheme");
+                var t = (q === "dark" || q === "white" || q === "purple") ? q : "purple";
+                document.documentElement.setAttribute("data-theme", t);
+            } catch (_) { document.documentElement.setAttribute("data-theme", "purple"); }
+        })();
+    </script>
+
+    <!-- jQuery + 공통 리소스(부트스트랩) — 실제 앱과 동일 -->
+    <script src="../../js/jquery.min.js"></script>
+    <script src="../resources/index.js"></script>
+
+    <style>
+        /* ===== 깨끗한(자급자족·drag-safe) 호스트 셸 — 기존 호스트 CSS 미참조 ===== */
+        * { box-sizing: border-box; }
+        /* 헤더 테마 토큰 — 옵션에서 테마 변경 시 html[data-theme] 전환에 반응 */
+        :root            { --hdr-bg:#0f0818; --hdr-text:#f4e8ff; --hdr-border:rgba(255,255,255,.07); --hdr-btn:#e0cef2; --hdr-btn-hover:rgba(255,255,255,.08); --host-bg:#0f0818; }
+        html[data-theme="dark"]  { --hdr-bg:#0b1118; --hdr-text:#e7eef7; --hdr-border:rgba(120,160,210,.14); --hdr-btn:#a9bacb; --hdr-btn-hover:rgba(255,255,255,.07); --host-bg:#0b1118; }
+        html[data-theme="white"] { --hdr-bg:#ffffff; --hdr-text:#1a2030; --hdr-border:rgba(20,30,60,.12); --hdr-btn:#55607a; --hdr-btn-hover:rgba(0,0,0,.05); --host-bg:#eef2f7; }
+        html, body { height: 100%; margin: 0; overflow: hidden; background: var(--host-bg, #0f0818); }
+        .u4a-app { display: flex; flex-direction: column; height: 100vh; width: 100vw; overflow: hidden; }
+        .u4a-content { position: relative; flex: 1 1 auto; min-height: 0; }
+        .u4a-content > iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+
+        /* 공통 헤더(타이틀바) — u4a-header.js 가 #u4a-host-titlebar 에 렌더. 스타일은 인라인(외부 CSS 미참조) */
+        .u4a-hdr { flex: 0 0 34px; height: 34px; display: flex; align-items: center; justify-content: space-between;
+            padding: 0 6px 0 10px; position: relative; z-index: 5; background: var(--hdr-bg); color: var(--hdr-text);
+            border-bottom: 1px solid var(--hdr-border); -webkit-app-region: drag; user-select: none;
+            font-family: "Segoe UI","Malgun Gothic",Arial,sans-serif; font-size: 12.5px; }
+        .u4a-hdr__brand { display: flex; align-items: center; gap: 8px; min-width: 0; font-weight: 700; letter-spacing: .02em; }
+        .u4a-hdr__logo { width: 18px; height: 18px; border-radius: 4px; object-fit: contain; flex: 0 0 auto; -webkit-user-drag: none; }
+        .u4a-hdr__title { font-size: 12.5px; color: var(--hdr-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .u4a-hdr__winbtns { display: flex; gap: 2px; flex: 0 0 auto; -webkit-app-region: no-drag; }
+        .u4a-hdr__winbtn { width: 38px; height: 34px; border: none; background: transparent; color: var(--hdr-btn); cursor: pointer;
+            padding: 0; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; transition: background .15s, color .15s; }
+        .u4a-hdr__winbtn:hover { background: var(--hdr-btn-hover); color: var(--hdr-text); }
+        .u4a-hdr__winbtn--close:hover { background: #d83b3b; color: #fff; }
+        .u4a-hdr__winicon { width: 11px; height: 11px; display: block; fill: none; stroke: currentColor; stroke-width: 1.1; stroke-linecap: round; stroke-linejoin: round; }
+        .u4a-hdr__winbtn:active .u4a-hdr__winicon { transform: scale(.9); }
+        .u4a-hdr__winicon--restore { display: none; }
+        .u4a-hdr__winbtn.is-maximized .u4a-hdr__winicon--max { display: none; }
+        .u4a-hdr__winbtn.is-maximized .u4a-hdr__winicon--restore { display: block; }
+
+        /* 전체창 오버레이(busy/loading/neterr) — 타이틀바 아래에서 시작(드래그영역 안 가림), 기본 숨김 */
+        #u4aWsBusyIndicator, #u4a_neterr, #u4a_main_load {
+            position: absolute; left: 0; right: 0; top: 34px; bottom: 0; z-index: 900;
+            display: none; align-items: center; justify-content: center; color: #f4e8ff;
+            background: rgba(10,8,18,.55); font-family: "Segoe UI","Malgun Gothic",Arial,sans-serif;
+        }
+        #u4a_neterr.u4a_neterrInactive, #u4a_main_load.u4a_loadersInactive { display: none !important; }
+    </style>
+</head>
+
+<body class="sapUiBody u4aWsMainBody">
+
+    <div id="u4a-app" class="u4a-app">
+        <!-- 공통 헤더 (U4AHeader.mount 가 채움) -->
+        <header id="u4a-host-titlebar"></header>
+        <!-- 로그인/메인 iframe 컨테이너 -->
+        <div id="u4a-content" class="u4a-content">
+            <div id="content" style="display: none;" class="u4aWsContent"></div>
+        </div>
+    </div>
+
+    <!-- 전체창 오버레이(실제 부트스트랩/Login.js 가 참조) -->
+    <div id="u4aWsBusyIndicator" class="u4aWsBusyIndicator" style="display:none;">Loading…</div>
+    <div id="u4a_neterr" class="u4a_neterr u4a_neterrInactive" tabindex="-1"><div id="u4a_loaders_msg">Network Disconnect....</div></div>
+    <div id="u4a_main_load" class="u4a_loaders u4a_loadersInactive" style="display: none;"><div class="cl_ring">LOADING</div></div>
+    <div id="ai_if_dom" style="display:none;"></div>
+    <audio id="u4aWsAudio" style="visibility: hidden;"></audio>
+
+    <!-- 공통 헤더 컴포넌트 + 실제 호스트 로직(index.js: IPC/분기/shell렌더/kick) -->
+    <script src="../../common/header/u4a-header.js"></script>
+    <script src="../ws10_20/index.js"></script>
+</body>
+</html>

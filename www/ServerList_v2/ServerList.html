@@ -9,6 +9,8 @@
     <link rel="icon" type="image/x-icon" href="../img/logo.ico" />
     <link rel="shortcut icon" type="image/x-icon" href="../img/logo.ico" />
     <link rel="stylesheet" href="./css/serverlist.css" />
+    <!-- 공통 헤더(타이틀바) 단일 소스 — 모든 창 공용 -->
+    <link rel="stylesheet" href="../common/header/u4a-header.css" />
     <script>
         // FOUC 방지: CSS 로드 전 저장된 테마를 즉시 html[data-theme] 에 적용
         (function () {
@@ -25,36 +27,8 @@
     <!-- 앱 셸 (배경/그리드 오버레이는 CSS) -->
     <div class="ws-app">
 
-        <!-- 타이틀바 (드래그) -->
-        <div class="ws-titlebar">
-            <div class="ws-titlebar__brand">
-                <img class="ws-brand-mark" src="../img/logo.png" alt="U4A Workspace" draggable="false"
-                     onerror="this.onerror=null;this.classList.add('is-fallback');this.removeAttribute('src');" />
-                <span class="ws-titlebar__text" data-i18n="brand">U4A Workspace</span>
-            </div>
-            <div class="ws-winbtns">
-                <button id="ws-win-min" class="ws-winbtn" data-i18n-title="win_min" title="Minimize" aria-label="Minimize">
-                    <svg class="ws-winicon" viewBox="0 0 10 10" aria-hidden="true" focusable="false">
-                        <line x1="1.5" y1="5" x2="8.5" y2="5" />
-                    </svg>
-                </button>
-                <button id="ws-win-max" class="ws-winbtn" data-i18n-title="win_max" title="Maximize" aria-label="Maximize">
-                    <svg class="ws-winicon ws-winicon--max" viewBox="0 0 10 10" aria-hidden="true" focusable="false">
-                        <rect x="1.5" y="1.5" width="7" height="7" rx="1.2" />
-                    </svg>
-                    <svg class="ws-winicon ws-winicon--restore" viewBox="0 0 10 10" aria-hidden="true" focusable="false">
-                        <rect x="1.3" y="3" width="5.7" height="5.7" rx="1" />
-                        <path d="M3.4 3 V2.1 a1 1 0 0 1 1-1 H8.7 a1 1 0 0 1 1 1 V6.4 a1 1 0 0 1 -1 1 H7" />
-                    </svg>
-                </button>
-                <button id="ws-win-close" class="ws-winbtn close" data-i18n-title="win_close" title="Close" aria-label="Close">
-                    <svg class="ws-winicon" viewBox="0 0 10 10" aria-hidden="true" focusable="false">
-                        <line x1="1.6" y1="1.6" x2="8.4" y2="8.4" />
-                        <line x1="8.4" y1="1.6" x2="1.6" y2="8.4" />
-                    </svg>
-                </button>
-            </div>
-        </div>
+        <!-- 타이틀바 (드래그) — 마크업/동작은 U4AHeader.mount() 가 채운다 -->
+        <header id="u4a-header"></header>
 
         <!-- 로그온 헤더 -->
         <header class="ws-header">
@@ -115,6 +89,8 @@
     <div id="ws-toast-root" class="ws-toast-root"></div>
     <audio id="u4aWsAudio"></audio>
 
+    <!-- 공통 헤더 컴포넌트 (serverlist.ui.js 의 init 이 U4AHeader.mount 를 호출하므로 먼저 로드) -->
+    <script src="../common/header/u4a-header.js"></script>
     <script src="./js/serverlist.data.js"></script>
     <script src="./js/serverlist.ui.js"></script>
 </body>

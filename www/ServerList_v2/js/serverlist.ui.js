@@ -599,8 +599,8 @@ window.U4A_LOGO = window.U4A_LOGO || (function () {
             const sSysid    = svc.systemid || row.sid || "";
             const sWinTheme = readSysidUxTheme(sSysid) || THEME;
 
-            // 첨부 이미지의 index.html 경로: <APPPATH>/ws30/ws10_20/index.html
-            const filePath = PATH.join(APPPATH, "ws30", "ws10_20", "index.html");
+            // [클린 아키텍처] 더블클릭 → ws30/_test/index.html (자급자족·drag-safe, 기존 CSS 미참조)
+            const filePath = PATH.join(APPPATH, "ws30", "_test", "index.html");
             const fileUrl  = "file:///" + String(filePath).replace(/\\/g, "/");
             const qs = [
                 "browserkey=" + encodeURIComponent(BROWSERKEY),
@@ -1030,26 +1030,23 @@ window.U4A_LOGO = window.U4A_LOGO || (function () {
     }
 
     /* ---------- 창 제어 ---------- */
+    // 공통 헤더 컴포넌트 인스턴스 (U4AHeader.mount 결과)
+    let _header = null;
     function wireWindowButtons() {
-        let win = null;
-        try { if (typeof require === "function") win = require("@electron/remote").getCurrentWindow(); } catch (_) {}
-        const on = (id, fn) => { const b = document.getElementById(id); if (b) b.onclick = fn; };
-        on("ws-win-min",   () => win && win.minimize());
-        on("ws-win-max",   () => win && (win.isMaximized() ? win.unmaximize() : win.maximize()));
-        on("ws-win-close", () => win && win.close());
-
-        // 최대화/복원 상태에 따라 최대화 버튼 아이콘(사각형 ↔ 겹친 사각형) 토글
-        const maxBtn = document.getElementById("ws-win-max");
-        const syncMaxIcon = () => {
-            if (!maxBtn) return;
-            let m = false; try { m = !!(win && win.isMaximized()); } catch (_) {}
-            maxBtn.classList.toggle("is-maximized", m);
-            maxBtn.title = m ? "Restore" : "Maximize";
-        };
-        if (win && typeof win.on === "function") {
-            try { win.on("maximize", syncMaxIcon); win.on("unmaximize", syncMaxIcon); } catch (_) {}
+        if (typeof U4AHeader === "undefined" || !U4AHeader.mount) {
+            try { console.warn("[ServerList] U4AHeader 미로드 — 공통 헤더 컴포넌트 확인 필요"); } catch (_) {}
+            return;
         }
-        syncMaxIcon();
+        // 공통 헤더 단일 소스로 렌더 + 창제어 연결.
+        //  · 제목/버튼 title 은 현재 언어로 초기화하고,
+        //  · data-i18n / data-i18n-title 키를 함께 부여 → 언어 전환 시 applyStaticI18n 이 재적용.
+        _header = U4AHeader.mount("u4a-header", {
+            logo:  "../img/logo.png",
+            title: t("brand"),
+            i18n:  { brand: "brand", min: "win_min", max: "win_max", close: "win_close" }
+        });
+        // mount 가 applyStaticI18n(init) 이후에 호출되므로, 새로 생긴 data-i18n 요소를 한 번 더 적용.
+        applyStaticI18n();
     }
 
     /* ---------- Refresh / 설정 메뉴 ---------- */

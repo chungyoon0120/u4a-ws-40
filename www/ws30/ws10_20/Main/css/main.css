@@ -30,7 +30,8 @@ html, body {
 .ws-main-app:before {
     content: ""; position: absolute; inset: 0; pointer-events: none;
     background: linear-gradient(var(--u4a-grid) 1px, transparent 1px), linear-gradient(90deg, var(--u4a-grid-2) 1px, transparent 1px);
-    background-size: 32px 32px, 32px 32px; opacity: var(--u4a-grid-opacity); mix-blend-mode: overlay;
+    background-size: 32px 32px, 32px 32px; opacity: var(--u4a-grid-opacity);
+    /* mix-blend-mode 제거: iframe 내 컴포지팅 레이어가 부모 창 드래그(app-region)를 죽임 */
 }
 
 /* ---------- 타이틀바 (드래그) ---------- */
@@ -38,7 +39,6 @@ html, body {
     position: relative; z-index: 6; height: var(--u4a-titlebar-h);
     display: flex; align-items: center; justify-content: space-between;
     padding: 0 6px 0 10px; background: var(--u4a-titlebar-bg);
-    backdrop-filter: var(--u4a-titlebar-blur);
     /* ServerList 헤더와 동일: 타이틀바를 드래그 영역으로 (winbtns 만 no-drag) */
     -webkit-app-region: drag; color: var(--u4a-titlebar-text);
     border-bottom: 1px solid var(--u4a-titlebar-border); user-select: none;
@@ -235,9 +235,9 @@ html, body {
         radial-gradient(ellipse 80% 20% at 55% 0%, rgba(80, 130, 255, 0.45) 0%, transparent 100%),
         radial-gradient(ellipse 80% 20% at 55% 100%, rgba(150, 60, 255, 0.40) 0%, transparent 100%),
         radial-gradient(ellipse 50% 65% at 72% 48%, rgba(120, 80, 255, 0.30) 0%, rgba(60, 100, 255, 0.15) 50%, transparent 80%);
-    animation: breatheGlow 2.5s ease-in-out infinite; will-change: opacity;
+    /* 무한 애니메이션 + will-change 제거: 영구 GPU 레이어가 부모 창 드래그를 죽임 → 정적 글로우 */
+    opacity: 0.55;
 }
-@keyframes breatheGlow { 0%, 100% { opacity: 0.25; } 50% { opacity: 1.0; } }
 
 /* 페이드 오버레이 */
 .u4a-ws-bg-fade {
@@ -256,14 +256,12 @@ html, body {
     font-size: 6.5rem; font-weight: 900; letter-spacing: -0.2rem;
     background: linear-gradient(to bottom, #cc00ff 40%, #aaa);
     -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
-    animation: fadeInBlur 1.2s cubic-bezier(0.22,1,0.36,1) forwards;
+    /* fadeInBlur 애니메이션 제거: filter:blur 잔존 레이어가 부모 창 드래그를 죽임 → 정적 표시 */
 }
 .u4a-ws-brand-desc {
     font-size: 2.2rem; font-weight: 300; letter-spacing: 0.5rem; margin-top: -0.5rem;
-    opacity: 0; animation: fadeInUp 1s cubic-bezier(0.22,1,0.36,1) 0.4s forwards;
+    opacity: 0.8;   /* fadeInUp 애니메이션 제거(레이어 방지) → 최종 상태로 정적 표시 */
 }
-@keyframes fadeInBlur { 0% { opacity: 0; filter: blur(10px); transform: scale(0.95); } 100% { opacity: 1; filter: blur(0); transform: scale(1); } }
-@keyframes fadeInUp { 0% { opacity: 0; transform: translateY(20px); } 100% { opacity: 0.8; transform: translateY(0); } }
 
 /* 인증 뱃지 */
 .u4a-ws-cert-layer {
@@ -271,7 +269,7 @@ html, body {
     display: flex; flex-direction: row; flex-wrap: wrap;
     justify-content: flex-end; align-items: flex-end; gap: 1vw; z-index: 20; pointer-events: none;
 }
-.u4a-ws-cert-layer img { height: clamp(28px, 3.5vw, 85px); width: auto; filter: drop-shadow(0 1px 3px rgba(0,0,0,0.4)); }
+.u4a-ws-cert-layer img { height: clamp(28px, 3.5vw, 85px); width: auto; }  /* filter:drop-shadow 제거(레이어 방지) */
 /* 흰색 뱃지(_w)=다크/퍼플, 어두운 뱃지(_b)=화이트 테마 토글 */
 .u4a-ws-cert-layer--light { display: none; }
 
@@ -300,7 +298,7 @@ html[data-theme="white"] .u4a-ws-brand-u4a {
     -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; -webkit-font-smoothing: antialiased;
 }
 html[data-theme="white"] .u4a-ws-brand-desc { color: #1e2240; }
-html[data-theme="white"] .u4a-ws-cert-layer img { filter: drop-shadow(0 1px 4px rgba(0,0,0,0.15)); }
+html[data-theme="white"] .u4a-ws-cert-layer img { /* filter:drop-shadow 제거(레이어 방지) */ }
 html[data-theme="white"] .u4a-ws-cert-layer--dark { display: none; }
 html[data-theme="white"] .u4a-ws-cert-layer--light { display: flex; }
 
@@ -311,7 +309,7 @@ html[data-theme="white"] .u4a-ws-cert-layer--light { display: flex; }
 .ws-modal-backdrop {
     position: fixed; inset: 0; z-index: 9500;
     display: flex; align-items: center; justify-content: center;
-    background: var(--u4a-modal-backdrop); backdrop-filter: blur(2px);
+    background: var(--u4a-modal-backdrop);
     opacity: 0; transition: opacity var(--ws-dur); -webkit-app-region: no-drag;
 }
 .ws-modal-backdrop.is-open { opacity: 1; }
@@ -319,7 +317,7 @@ html[data-theme="white"] .u4a-ws-cert-layer--light { display: flex; }
     width: 100%; max-width: 440px; margin: 16px;
     background: var(--u4a-modal-bg); background-image: var(--u4a-modal-overlay);
     border: 1px solid var(--u4a-line-strong); border-radius: 16px;
-    box-shadow: var(--u4a-modal-shadow); backdrop-filter: blur(16px);
+    box-shadow: var(--u4a-modal-shadow);
     transform: translateY(10px) scale(.98); transition: transform var(--ws-dur);
     overflow: hidden;
 }

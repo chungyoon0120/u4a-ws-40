@@ -24,6 +24,10 @@
     function on(id, fn) { var b = $(id); if (b) { b.addEventListener("click", fn); } }
     var isElectron = !!CURRWIN;
 
+    /* (모달 kick 제거) 모달 CSS 가 레이어 유발 속성(blur/filter/animation 등)을 안 쓰면
+       모달을 띄워도 부모 창 드래그 영역이 stale 되지 않으므로, 1px 리사이즈 kick 이 불필요.
+       (kick 은 화면이 미세하게 흔들리는 부작용이 있어 제거함. iframe 교체 kick 은 index.js 에 유지) */
+
     /* 창 제어 버튼(최소화/최대화/닫기)·드래그는 공통 헤더(ws10_20/index.html)로 이동.
        이 페이지는 헤더 아래 영역만 그린다. */
 
