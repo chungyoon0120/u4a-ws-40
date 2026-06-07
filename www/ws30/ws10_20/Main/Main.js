@@ -125,22 +125,29 @@
         ];
     }
 
-    // 공용 모달 셸 생성 (head 아이콘+타이틀+X, body, foot 닫기). { back, close } 반환.
-    function _modalShell(sTitle, sIconSvg, sBodyHtml) {
+    // 공용 모달 셸 생성 (head 아이콘+타이틀+X, body, foot). { back, close } 반환.
+    //  - sFootHtml 미지정 시 기본 '닫기' 버튼. 지정 시 그 마크업을 foot 으로 사용(버튼 직접 와이어).
+    function _modalShell(sTitle, sIconSvg, sBodyHtml, sFootHtml) {
         var root = $("ws-modal-root");
         if (!root) { return null; }
+
+        var sFoot = (sFootHtml == null)
+            ? '<button type="button" class="ws-modal__btn" data-close>닫기</button>'
+            : sFootHtml;
+
+        var sHeadIco = sIconSvg ? '<span class="ws-ico" aria-hidden="true">' + sIconSvg + '</span>' : '';
 
         var back = document.createElement("div");
         back.className = "ws-modal-backdrop";
         back.innerHTML =
             '<div class="ws-modal" role="dialog" aria-modal="true" aria-label="' + _esc(sTitle) + '">' +
             '  <div class="ws-modal__head">' +
-            '    <span class="ws-ico" aria-hidden="true">' + sIconSvg + '</span>' +
+            '    ' + sHeadIco +
             '    <span class="ws-modal__title">' + _esc(sTitle) + '</span>' +
             '    <button type="button" class="ws-modal__close" aria-label="닫기">&#10005;</button>' +
             '  </div>' +
             '  <div class="ws-modal__body">' + sBodyHtml + '</div>' +
-            '  <div class="ws-modal__foot"><button type="button" class="ws-modal__btn" data-close>닫기</button></div>' +
+            '  <div class="ws-modal__foot">' + sFoot + '</div>' +
             '</div>';
 
         function close() {
@@ -163,6 +170,48 @@
 
     var _ICON_INFO = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 7.6h.01"/></svg>';
     var _ICON_GEAR = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V15z"/></svg>';
+    var _ICON_WARN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.6 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.6a2 2 0 0 0-3.4 0z"/><path d="M12 9v4.5"/><path d="M12 17h.01"/></svg>';
+
+    /* ── 종료 확인 팝업 (옵션 팝업과 동일한 스타일 모달) ──
+       호스트(index.html)의 닫기 버튼이 "이 SYSID 의 마지막 창"일 때 호출한다.
+       종료 선택 시 onConfirm 콜백으로 실제 창 닫기를 호스트가 수행한다. */
+    function _openExitConfirmPopup(onConfirm) {
+        var body =
+            '<div class="ws-confirm">' +
+            '  <span class="ws-confirm__badge" aria-hidden="true">' + _ICON_WARN + '</span>' +
+            '  <div class="ws-confirm__main">' +
+            '    <div class="ws-confirm__title">종료하시겠습니까?</div>' +
+            '    <div class="ws-confirm__desc">현재 세션 창이 닫히며 작업이 종료됩니다.</div>' +
+            '  </div>' +
+            '</div>';
+
+        var foot =
+            '<button type="button" class="ws-modal__btn ws-modal__btn--ghost" data-cancel>취소</button>' +
+            '<button type="button" class="ws-modal__btn ws-modal__btn--danger" data-confirm>종료</button>';
+
+        // 헤드 아이콘은 본문 배지로 대체하므로 생략(빈 문자열).
+        var m = _modalShell("종료 확인", "", body, foot);
+        if (!m) { return false; }
+
+        var btnConfirm = m.back.querySelector("[data-confirm]");
+        var btnCancel  = m.back.querySelector("[data-cancel]");
+
+        if (btnConfirm) {
+            btnConfirm.addEventListener("click", function () {
+                m.close();
+                try { if (typeof onConfirm === "function") { onConfirm(); } } catch (_) {}
+            });
+        }
+        if (btnCancel) {
+            btnCancel.addEventListener("click", function () { m.close(); });
+        }
+        try { if (btnConfirm) { btnConfirm.focus(); } } catch (_) {}
+        return true;
+    }
+
+    // 호스트(index.js) 닫기 로직에서 호출하는 진입점.
+    //  반환 true = 팝업을 띄움(닫기는 onConfirm 콜백으로), false = 띄우지 못함(호스트가 폴백 처리).
+    try { window.__confirmExit = function (onConfirm) { return _openExitConfirmPopup(onConfirm); }; } catch (_) {}
 
     function _openInfoPopup() {
         var rows = _collectInfo();
