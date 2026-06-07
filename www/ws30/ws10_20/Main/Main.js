@@ -36,6 +36,19 @@
         on("ws-logoff", function () { try { if (CURRWIN) { CURRWIN.close(); } } catch (_) {} });
     }
 
+    /* ── 새 창 (Ctrl+N) → 동일 세션 메인 창 추가 오픈 ──
+       로직은 호스트(index.html)가 노출한 전역 onNewWindow 를 그대로 사용한다.
+       (resources/index.js: 현재 USERINFO/메타데이터로 새 BrowserWindow 생성 → if-meta-info 전달)
+       Main.html 은 ws_main_frame iframe 이므로 window.parent 가 호스트다.
+       비-Electron 프리뷰에서는 onNewWindow 가 없으므로 안전하게 무시한다. */
+    function _wireNewWindow() {
+        on("ws-new-window", function () {
+            try {
+                if (P && typeof P.onNewWindow === "function") { P.onNewWindow(); }
+            } catch (_) {}
+        });
+    }
+
     /* 창 드래그는 ServerList 와 동일하게 CSS(-webkit-app-region: drag, 타이틀바)로 처리 → JS 불필요.
        (더블클릭 최대화/복원, 최대화 상태 드래그 복원이동 등은 OS/Chromium 이 app-region 으로 처리) */
 
@@ -332,6 +345,7 @@
 
         _wireLogoff();
         _wireSystemMenu();
+        _wireNewWindow();
 
         // Electron 환경 표식(스타일 분기 필요 시 사용)
         if (isElectron) { document.documentElement.setAttribute("data-electron", "1"); }
