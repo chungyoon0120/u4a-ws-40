@@ -599,8 +599,8 @@ window.U4A_LOGO = window.U4A_LOGO || (function () {
             const sSysid    = svc.systemid || row.sid || "";
             const sWinTheme = readSysidUxTheme(sSysid) || THEME;
 
-            // [클린 아키텍처] 더블클릭 → ws30/_test/index.html (자급자족·drag-safe, 기존 CSS 미참조)
-            const filePath = PATH.join(APPPATH, "ws30", "_test", "index.html");
+            // 더블클릭 → ws30/ws10_20/index.html (클린 호스트, drag-safe)
+            const filePath = PATH.join(APPPATH, "ws30", "ws10_20", "index.html");
             const fileUrl  = "file:///" + String(filePath).replace(/\\/g, "/");
             const qs = [
                 "browserkey=" + encodeURIComponent(BROWSERKEY),

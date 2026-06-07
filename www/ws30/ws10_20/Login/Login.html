@@ -8,27 +8,21 @@
     <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
 
-    <link rel="stylesheet" href="css/login.css">
+    <link rel="icon" type="image/x-icon" href="../../../img/logo.ico" />
 
     <script>
-        // FOUC 방지: CSS 로드 전 테마를 즉시 html[data-theme] 에 적용
-        //  우선순위: URL 쿼리(u4aTheme, ServerList 가 창 열 때 전달) → localStorage → purple
+        // FOUC 방지: 테마 즉시 적용
         (function () {
             function valid(v) { return v === "dark" || v === "white" || v === "purple"; }
             var t = "";
-            try {
-                var q = new URLSearchParams(location.search).get("u4aTheme");
-                if (valid(q)) { t = q; try { localStorage.setItem("u4a-ws-theme-v1", q); } catch (_) {} }
-            } catch (_) {}
+            try { var q = new URLSearchParams(location.search).get("u4aTheme"); if (valid(q)) { t = q; try { localStorage.setItem("u4a-ws-theme-v1", q); } catch (_) {} } } catch (_) {}
             if (!t) { try { var v = localStorage.getItem("u4a-ws-theme-v1"); if (valid(v)) t = v; } catch (_) {} }
             document.documentElement.setAttribute("data-theme", t || "purple");
         })();
     </script>
 
     <script>
-        /************************************************************************
-         * 에러 감지 / 공용 Node 핸들 (parent 로부터 주입)
-         ************************************************************************/
+        /* 에러 감지 / 공용 Node 핸들 (parent 로부터 주입) — 실제 Login.html 과 동일 */
         var require = parent.require,
             REMOTE = require('@electron/remote'),
             IPCMAIN = REMOTE.require('electron').ipcMain,
@@ -37,18 +31,94 @@
             APPPATH = APP.getAppPath(),
             PATHINFO = require(PATH.join(APPPATH, "ws30", "resources", "pathInfo.js")),
             WSERR = require(PATHINFO.WSTRYCATCH);
-
         var zconsole = WSERR(window, document, console);
     </script>
+
+    <style>
+        /* ===== 자급자족 테마 토큰 (외부 CSS 미참조) ===== */
+        :root{
+            --bg:#0f0818; --panel:#1e1430; --text:#f5e7ff; --soft:#cdb5e6; --dim:#8a7aa0;
+            --line:rgba(216,180,254,.16); --line2:rgba(216,180,254,.28);
+            --accent:#ec4899; --accent2:#a855f7; --grad:linear-gradient(135deg,#ec4899,#a855f7);
+            --btn:rgba(255,255,255,.05); --shadow:0 24px 80px rgba(0,0,0,.42); --danger:#ef4444; --invalid:#ef4444;
+            --pagebg:radial-gradient(circle at 12% 0%,rgba(236,72,153,.18),transparent 30%),radial-gradient(circle at 88% 12%,rgba(168,85,247,.16),transparent 34%),linear-gradient(145deg,#0f0818 0%,#160c22 50%,#0a0612 100%);
+        }
+        html[data-theme="dark"]{
+            --bg:#0b1118; --panel:#141d28; --text:#e7eef7; --soft:#a9bacb; --dim:#6b7d90;
+            --line:rgba(120,160,210,.16); --line2:rgba(120,160,210,.28);
+            --accent:#3b82f6; --accent2:#06b6d4; --grad:linear-gradient(135deg,#3b82f6,#06b6d4); --btn:rgba(255,255,255,.05);
+            --pagebg:radial-gradient(circle at 80% 0%,rgba(40,120,200,.18),transparent 40%),linear-gradient(145deg,#0b1118 0%,#0e1620 60%,#080d14 100%);
+        }
+        html[data-theme="white"]{
+            --bg:#eef2f7; --panel:#ffffff; --text:#1a2030; --soft:#55607a; --dim:#8a93a3;
+            --line:rgba(20,30,60,.12); --line2:rgba(20,30,60,.2);
+            --accent:#9333ea; --accent2:#6366f1; --grad:linear-gradient(135deg,#9333ea,#6366f1); --btn:rgba(0,0,0,.04); --shadow:0 24px 80px rgba(0,0,0,.14); --invalid:#dc2626;
+            --pagebg:radial-gradient(circle at 80% 0%,rgba(150,90,255,.10),transparent 40%),linear-gradient(145deg,#eef2f7 0%,#e7ecf4 100%);
+        }
+
+        /* ===== drag-safe: blur/애니/mix-blend/filter 없음 ===== */
+        * { box-sizing: border-box; }
+        html, body { margin: 0; height: 100%; overflow: hidden; font-family: "Segoe UI","Malgun Gothic",Arial,sans-serif; color: var(--text); background: var(--pagebg); }
+        .ws-login-app { height: 100vh; display: flex; flex-direction: column; }
+        .ws-login-main { flex: 1 1 auto; display: flex; align-items: center; justify-content: center; padding: 20px; }
+
+        .ws-login-card { width: 100%; max-width: 380px; background: var(--panel); border: 1px solid var(--line2); border-radius: 18px; box-shadow: var(--shadow); overflow: hidden; }
+        .ws-login-card__head { display: flex; flex-direction: row; align-items: center; justify-content: flex-start; gap: 12px; padding: 24px 24px 18px; }
+        .ws-login-card__logo { width: 40px; height: 40px; object-fit: contain; flex: 0 0 auto; }
+        .ws-login-card__logo.is-fallback { width: 36px; height: 36px; border-radius: 10px; background: var(--grad); }
+        .ws-login-card__title { font-size: 17px; font-weight: 800; letter-spacing: .3px; }
+        .ws-login-card__body { padding: 8px 24px 24px; }
+
+        .ws-field { margin-bottom: 13px; }
+        .ws-field__label { display: block; font-size: 12px; color: var(--soft); margin-bottom: 5px; }
+        .ws-field__req { color: var(--accent); }
+        .ws-field__msg { font-size: 11px; color: var(--invalid); margin-top: 4px; min-height: 0; }
+        .ws-field.is-error .ws-input, .ws-field.is-error .ws-select { border-color: var(--invalid); }
+        .ws-field--check { margin-top: 4px; }
+
+        .ws-input, .ws-select { width: 100%; font: inherit; font-size: 14px; padding: 10px 12px; border-radius: 10px; background: var(--btn); border: 1px solid var(--line); color: var(--text); outline: none; }
+        .ws-input:focus, .ws-select:focus { border-color: var(--accent2); }
+        .ws-input-wrap { position: relative; }
+        .ws-input--has-icon { padding-right: 40px; }
+        .ws-input-icon { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); width: 30px; height: 30px; background: transparent; border: 0; color: var(--soft); cursor: pointer; border-radius: 7px; }
+        .ws-eye { font-size: 15px; }
+
+        .ws-check { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--soft); cursor: pointer; user-select: none; }
+        .ws-check input { width: 16px; height: 16px; accent-color: var(--accent2); }
+        .ws-check__box { display: none; }
+
+        .ws-btn { font: inherit; font-size: 14px; padding: 10px 16px; border-radius: 10px; cursor: pointer; border: 1px solid var(--line2); background: var(--btn); color: var(--text); }
+        .ws-btn--primary { border: 0; color: #fff; background: var(--grad); font-weight: 700; }
+        .ws-btn--block { width: 100%; margin-top: 8px; font-size: 15px; padding: 12px; border-radius: 11px; }
+        .ws-btn--primary:hover { opacity: .94; }
+        .ws-staff-btns { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+
+        .ws-login-foot { flex: 0 0 auto; display: flex; justify-content: space-between; padding: 10px 18px; font-size: 11px; color: var(--dim); }
+
+        /* 토스트 (애니메이션 없이 정적) */
+        .ws-toast-root { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); display: flex; flex-direction: column; gap: 8px; z-index: 9000; }
+        .ws-toast { background: var(--panel); color: var(--text); border: 1px solid var(--line2); border-radius: 12px; padding: 10px 16px; font-size: 13px; box-shadow: var(--shadow); white-space: pre-line; max-width: 80vw; }
+        .ws-toast.is-error { border-color: var(--invalid); }
+
+        /* 모달 (Login.js openModal 용 — drag-safe) */
+        .ws-modal-backdrop { position: fixed; inset: 0; z-index: 9500; display: flex; align-items: center; justify-content: center; background: rgba(8,4,14,.6); opacity: 0; transition: opacity .18s; }
+        .ws-modal-backdrop.is-open { opacity: 1; }
+        .ws-modal { width: 100%; max-width: 460px; margin: 16px; background: var(--panel); border: 1px solid var(--line2); border-radius: 16px; box-shadow: var(--shadow); overflow: hidden; }
+        .ws-modal__head { display: flex; align-items: center; gap: 10px; padding: 14px 18px; border-bottom: 1px solid var(--line); font-weight: 700; }
+        .ws-modal__title { flex: 1 1 auto; font-weight: 700; }
+        .ws-modal__close { background: transparent; border: 0; color: var(--soft); font-size: 16px; cursor: pointer; width: 30px; height: 30px; border-radius: 7px; }
+        .ws-modal__body { padding: 18px; font-size: 13px; line-height: 1.6; color: var(--soft); }
+        .ws-modal__foot { padding: 12px 18px; display: flex; justify-content: flex-end; gap: 8px; border-top: 1px solid var(--line); }
+        .ws-modal__btn { font: inherit; font-size: 13px; padding: 8px 16px; border-radius: 9px; cursor: pointer; background: var(--grad); border: 0; color: #fff; }
+        .ws-modal__btn--ghost { background: var(--btn); border: 1px solid var(--line2); color: var(--text); }
+    </style>
 </head>
 
 <body class="u4aWsLoginBody">
 
-    <!-- 전체 화면 셸 (로그인 성공 전까지 fade-in 대상) -->
-    <!-- 타이틀바는 공통 헤더(ws10_20/index.html)로 이동 — 이 페이지는 헤더 아래 영역만 채움 -->
+    <!-- 실제 Login.html 과 동일한 구조 (Login.js 가 이 ID/클래스들을 조작) -->
     <div id="content" class="ws-login-app" style="display:none;">
 
-        <!-- 본문: 가운데 로그인 카드 -->
         <main class="ws-login-main">
 
             <section class="ws-login-card" role="form" aria-label="U4A Workspace Login">
@@ -61,24 +131,19 @@
 
                 <div class="ws-login-card__body">
 
-                    <!-- CLIENT -->
                     <div class="ws-field" id="ws-field-client">
                         <label class="ws-field__label" for="ws_client"><span data-i18n="lbl_client">CLIENT</span> <span class="ws-field__req">*</span></label>
-                        <input id="ws_client" class="ws-input" type="text" inputmode="numeric" maxlength="3"
-                               autocomplete="off" spellcheck="false" />
+                        <input id="ws_client" class="ws-input" type="text" inputmode="numeric" maxlength="3" autocomplete="off" spellcheck="false" />
                         <div class="ws-field__msg"></div>
                     </div>
 
-                    <!-- ID -->
                     <div class="ws-field" id="ws-field-id">
                         <label class="ws-field__label" for="ws_id"><span data-i18n="lbl_id">ID</span> <span class="ws-field__req">*</span></label>
-                        <input id="ws_id" class="ws-input" type="text" autocomplete="off" spellcheck="false"
-                               list="ws_id_sugg" />
+                        <input id="ws_id" class="ws-input" type="text" autocomplete="off" spellcheck="false" list="ws_id_sugg" />
                         <datalist id="ws_id_sugg"></datalist>
                         <div class="ws-field__msg"></div>
                     </div>
 
-                    <!-- PASSWORD -->
                     <div class="ws-field" id="ws-field-pw">
                         <label class="ws-field__label" for="ws_pw"><span data-i18n="lbl_pw">PASSWORD</span> <span class="ws-field__req">*</span></label>
                         <div class="ws-input-wrap">
@@ -90,21 +155,18 @@
                         <div class="ws-field__msg"></div>
                     </div>
 
-                    <!-- LANGUAGE (Input: 하위버전 서버) — 기본 숨김 -->
                     <div class="ws-field" id="ws_langu_input_form" style="display:none;">
                         <label class="ws-field__label" for="ws_langu"><span data-i18n="lbl_langu">LANGUAGE</span> <span class="ws-field__req">*</span></label>
                         <input id="ws_langu" class="ws-input" type="text" maxlength="2" autocomplete="off" spellcheck="false" />
                         <div class="ws-field__msg"></div>
                     </div>
 
-                    <!-- LANGUAGE (Select: 서버 설치 언어 목록) — 기본 숨김 -->
                     <div class="ws-field" id="ws_langu_select_form" style="display:none;">
                         <label class="ws-field__label" for="ws_langu_select"><span data-i18n="lbl_langu">LANGUAGE</span> <span class="ws-field__req">*</span></label>
                         <select id="ws_langu_select" class="ws-select"></select>
                         <div class="ws-field__msg"></div>
                     </div>
 
-                    <!-- Workspace Language -->
                     <div class="ws-field" id="ws-field-wslangu">
                         <label class="ws-field__label" for="ws_wslangu" data-i18n="lbl_wslangu">Workspace Language</label>
                         <select id="ws_wslangu" class="ws-select">
@@ -113,7 +175,6 @@
                         </select>
                     </div>
 
-                    <!-- Remember -->
                     <div class="ws-field ws-field--check">
                         <label class="ws-check">
                             <input id="ws_rem" type="checkbox" />
@@ -122,10 +183,8 @@
                         </label>
                     </div>
 
-                    <!-- LOGIN -->
                     <button type="button" id="ws_loginBtn" class="ws-btn ws-btn--primary ws-btn--block" data-i18n="btn_login">LOGIN</button>
 
-                    <!-- Staff 빠른 로그인 (U4A R&D 서버 한정) — 추후 단계 -->
                     <div id="ws-staff-btns" class="ws-staff-btns" style="display:none;"></div>
 
                 </div>
@@ -134,7 +193,6 @@
 
         </main>
 
-        <!-- 푸터 -->
         <footer class="ws-login-foot">
             <span class="ws-login-foot__copy">Copyright 2022. Infocg inc. all rights reserved.</span>
             <span class="ws-login-foot__sysid">SYSID: <b id="ws-foot-sysid"></b></span>
@@ -142,12 +200,11 @@
 
     </div>
 
-    <!-- Toast / Modal 루트 -->
     <div id="ws-toast-root" class="ws-toast-root"></div>
     <div id="ws-modal-root"></div>
 
+    <!-- 로그인 로직 -->
     <script src="Login.js"></script>
-    <!-- Login_trial.js (UI5) 는 Trial 변환 시 재추가 — 현재 로그인 경로는 UI5 미사용 -->
 </body>
 
 </html>
