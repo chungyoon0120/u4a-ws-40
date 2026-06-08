@@ -63,7 +63,7 @@
       "package.json",
       "!www/**/_*.*",
       "!www/**/_*/**"
-    ],    
+    ],
     "asarUnpack": [
       "**/node_modules/@electron/remote/**/*"
     ],
@@ -105,8 +105,10 @@
     "exceljs": "^4.3.0",
     "express": "^5.2.1",
     "fs-extra": "^10.1.0",
+    "g": "^2.0.1",
     "gh-release-assets": "^2.0.1",
     "http": "^0.0.1-security",
+    "i": "^0.3.7",
     "mime-types": "^2.1.35",
     "mongodb": "^5.1.0",
     "ncp": "^2.0.0",
@@ -121,6 +123,7 @@
     "puppeteer-core": "^20.7.2",
     "random-key": "^0.3.2",
     "regedit": "^5.0.0",
+    "rm": "^0.1.8",
     "systeminformation": "^5.15.1",
     "ws": "^8.13.0",
     "xml-js": "^1.6.11",

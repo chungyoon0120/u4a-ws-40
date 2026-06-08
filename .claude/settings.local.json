@@ -6,7 +6,14 @@
       "PowerShell(Get-ChildItem -Force | Select-Object Mode, Length, Name; Write-Output \"---COUNT---\"; \\(Get-ChildItem -Recurse -File | Measure-Object\\).Count)",
       "Bash(git add *)",
       "Bash(git commit -m '@ *)",
-      "Bash(git push *)"
+      "Bash(git push *)",
+      "Bash(python -c \"import windows_toasts; print\\('windows_toasts OK', windows_toasts.__version__ if hasattr\\(windows_toasts,'__version__'\\) else ''\\)\")",
+      "Bash(echo \"---exit:$?---\")",
+      "Bash(echo '{\"transcript_path\":\"\",\"cwd\":\"C:\\\\\\\\Users\\\\\\\\socce\\\\\\\\Documents\\\\\\\\Github\\\\\\\\u4a-ws-40\"}')",
+      "Bash(python \"C:\\\\Users\\\\socce\\\\Documents\\\\Github\\\\u4a-ws-40\\\\claude_hooks\\\\python\\\\answer_finish.py\")"
     ]
-  }
+  },
+  "enabledMcpjsonServers": [
+    "sap-adt"
+  ]
 }
