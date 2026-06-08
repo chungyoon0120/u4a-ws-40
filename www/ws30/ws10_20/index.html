@@ -52,13 +52,35 @@
         .u4a-hdr__winbtn.is-maximized .u4a-hdr__winicon--max { display: none; }
         .u4a-hdr__winbtn.is-maximized .u4a-hdr__winicon--restore { display: block; }
 
-        /* 전체창 오버레이(busy/loading/neterr) — 타이틀바 아래에서 시작(드래그영역 안 가림), 기본 숨김 */
-        #u4aWsBusyIndicator, #u4a_neterr, #u4a_main_load {
+        /* 네트워크 오류 오버레이 — 타이틀바 아래에서 시작(드래그영역 안 가림), 기본 숨김 */
+        #u4a_neterr {
             position: absolute; left: 0; right: 0; top: 34px; bottom: 0; z-index: 900;
             display: none; align-items: center; justify-content: center; color: #f4e8ff;
             background: rgba(10,8,18,.55); font-family: "Segoe UI","Malgun Gothic",Arial,sans-serif;
         }
-        #u4a_neterr.u4a_neterrInactive, #u4a_main_load.u4a_loadersInactive { display: none !important; }
+        #u4a_neterr.u4a_neterrInactive { display: none !important; }
+
+        /* ===== 새 공통 busy 오버레이 (ServerList→로그인→메인 전환) — 자급자족 스피너 =====
+           기존 #u4aWsBusyIndicator(텍스트뿐) / #u4a_main_load(frame.css 의존, 이 셸 미로드)는
+           이 호스트 셸에서 보이지 않았다. 외부 CSS 의존 없는 테마 연동 스피너로 교체. */
+        #u4aHostBusy {
+            position: absolute; left: 0; right: 0; top: 34px; bottom: 0; z-index: 1000;
+            display: none; align-items: center; justify-content: center;
+            background: var(--host-bg, #0f0818);
+        }
+        #u4aHostBusy.is-show { display: flex; }
+        .u4a-busy__box { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+        .u4a-busy__spinner {
+            width: 44px; height: 44px; border-radius: 50%;
+            border: 3px solid var(--hdr-border, rgba(255,255,255,.15));
+            border-top-color: var(--hdr-btn, #e0cef2);
+            animation: u4aHostBusySpin .8s linear infinite;
+        }
+        .u4a-busy__text {
+            font-family: "Segoe UI","Malgun Gothic",Arial,sans-serif; font-size: 12.5px;
+            letter-spacing: .04em; color: var(--hdr-text, #f4e8ff); opacity: .85;
+        }
+        @keyframes u4aHostBusySpin { to { transform: rotate(360deg); } }
     </style>
 </head>
 
@@ -73,10 +95,15 @@
         </div>
     </div>
 
-    <!-- 전체창 오버레이(실제 부트스트랩/Login.js 가 참조) -->
-    <div id="u4aWsBusyIndicator" class="u4aWsBusyIndicator" style="display:none;">Loading…</div>
+    <!-- 전체창 오버레이 -->
+    <!-- ★ 새 공통 busy 오버레이 (ServerList→로그인→메인 전환 표시). 기존 #u4aWsBusyIndicator/#u4a_main_load 대체 -->
+    <div id="u4aHostBusy" aria-hidden="true">
+        <div class="u4a-busy__box">
+            <div class="u4a-busy__spinner"></div>
+            <div class="u4a-busy__text">Loading…</div>
+        </div>
+    </div>
     <div id="u4a_neterr" class="u4a_neterr u4a_neterrInactive" tabindex="-1"><div id="u4a_loaders_msg">Network Disconnect....</div></div>
-    <div id="u4a_main_load" class="u4a_loaders u4a_loadersInactive" style="display: none;"><div class="cl_ring">LOADING</div></div>
     <div id="ai_if_dom" style="display:none;"></div>
     <audio id="u4aWsAudio" style="visibility: hidden;"></audio>
 

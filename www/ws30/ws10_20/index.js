@@ -121,6 +121,69 @@ function _getContentHost() {
     return document.getElementById("u4a-content") || document.body;
 }
 
+
+/*************************************************************
+ * ★ 새 공통 busy 오버레이 (ServerList → 로그인 → 메인 전환 표시)
+ * ----------------------------------------------------------
+ *  - 기존 busy 는 이 호스트 셸에서 보이지 않았다:
+ *      · #u4aWsBusyIndicator → 단순 "Loading…" 텍스트라 인지 불가
+ *      · #u4a_main_load     → 애니메이션 CSS(frame.css)를 이 셸이 로드하지 않음
+ *      · setBusy(UI5)       → UI5 미부팅 경로라 동작 안 함
+ *    → #u4aHostBusy(자급자족 스피너) 하나로 대체한다.
+ *  - 전환 잠금(__hostBusyLock): iframe 교체가 끝나기 전(특히 Login.js 가
+ *    loadWS30MainPage() 직후 호출하는 showLoadingPage("")) 외부 hide 로 인해
+ *    busy 가 조기에 사라지는 것을 막는다. 잠금 해제는 대상 iframe 의 load 에서만.
+ *  - 기존 호출부(Login.js 의 parent.setDomBusy/showLoadingPage/setBusy)는
+ *    아래에서 이 오버레이로 재정의되어 수정 없이 그대로 동작한다.
+ *************************************************************/
+var __hostBusyLock = false;
+
+function _hostBusyEl() {
+    return document.getElementById("u4aHostBusy");
+}
+
+// busy 표시. bLock=true 이면 전환 잠금(외부 hide 무시)까지 건다.
+function _hostBusyShow(sText, bLock) {
+    let el = _hostBusyEl();
+    if (!el) { return; }
+    try {
+        let oText = el.querySelector(".u4a-busy__text");
+        if (oText) { oText.textContent = (sText != null && sText !== "") ? sText : "Loading…"; }
+    } catch (_) {}
+    el.classList.add("is-show");
+    el.setAttribute("aria-hidden", "false");
+    if (bLock) { __hostBusyLock = true; }
+}
+
+// busy 숨김. 전환 잠금 중에는 bForce=true 일 때만 숨긴다.
+function _hostBusyHide(bForce) {
+    if (__hostBusyLock && bForce !== true) { return; }   // 전환 중 외부 hide 무시
+    let el = _hostBusyEl();
+    if (!el) { return; }
+    el.classList.remove("is-show");
+    el.setAttribute("aria-hidden", "true");
+}
+
+// 전환 완료(iframe load): 잠금 해제 + 강제 숨김.
+function _hostBusyUnlockHide() {
+    __hostBusyLock = false;
+    _hostBusyHide(true);
+}
+
+/*************************************************************
+ * 기존 busy API 재정의(단일 소스) — 호출부는 그대로, 표시만 새 오버레이로.
+ *  ※ index.js 는 resources/index.js 보다 늦게 로드되므로 전역 함수가 덮어써진다.
+ *    Login.js 등 iframe 은 parent.* 로 접근하므로 window 노출도 보장한다.
+ *************************************************************/
+function setDomBusy(bIsBusy)      { if (bIsBusy === "X") { _hostBusyShow(); } else { _hostBusyHide(); } }
+function showLoadingPage(bIsShow) { if (bIsShow === "X") { _hostBusyShow(); } else { _hostBusyHide(); } }
+function setBusy(bIsBusy)         { if (bIsBusy === "X") { _hostBusyShow(); } else { _hostBusyHide(); } }
+try {
+    window.setDomBusy = setDomBusy;
+    window.showLoadingPage = showLoadingPage;
+    window.setBusy = setBusy;
+} catch (_) {}
+
 // ★ to-be 공통: 창(webContents)의 URL 쿼리스트링을 객체로 파싱한다.
 //  - Electron 업그레이드 후 BrowserWindow 의 getWebPreferences() 로 커스텀 값(SYSID/sessionKey 등)
 //    추출이 불가해졌다. 대신 모든 창이 loadURL 시 쿼리스트링으로 실어보낸 값
@@ -380,6 +443,9 @@ function _kickHostDragRegion() {
  *************************************************************/
 function _renderLoginShell() {
 
+    // 전환 busy ON (잠금) — 로그인 iframe load 에서 해제. (ServerList → 로그인)
+    _hostBusyShow("Loading…", true);
+
     let oContent = document.getElementById("content");
     if (oContent) {
         oContent.style.display = "none";
@@ -406,6 +472,8 @@ function _renderLoginShell() {
     oFrame.addEventListener("load", function () {
         _applyUxThemeToLogin(__u4aUxTheme);
         _applyUxLangToLogin(__u4aUxLang);
+        // 로그인 화면 준비 완료 → 전환 busy 해제
+        _hostBusyUnlockHide();
         // iframe 교체 후 드래그 영역 재계산 (stale 우회)
         setTimeout(_kickHostDragRegion, 50);
     });
@@ -421,6 +489,11 @@ function _renderLoginShell() {
  *  - 기존 UI5 메인 앱(_loadMainApp/mainAppBoot.js)은 보존하되 호출하지 않음.
  *************************************************************/
 function _renderMainShell() {
+
+    // 전환 busy ON (잠금) — 메인 iframe load 에서 해제. (로그인 → 메인 / 재진입)
+    //  ※ 잠금 덕분에 Login.js 가 loadWS30MainPage() 직후 호출하는 showLoadingPage("")
+    //    로는 꺼지지 않고, 실제 메인 화면 로드 완료 시점에만 사라진다.
+    _hostBusyShow("Loading…", true);
 
     let oContent = document.getElementById("content");
     if (oContent) {
@@ -455,12 +528,10 @@ function _renderMainShell() {
         _applyUxThemeToLogin(__u4aUxTheme);
         _applyUxLangToLogin(__u4aUxLang);
 
-        // 로그인 단계(Login.js fnOnLoginCheckThen)에서 켜둔 busy/로딩 해제.
-        //  - 원래 UI5 메인앱이 렌더 완료 후 껐으나, Main.html 로 대체되어 끄는 주체가 없으므로 여기서 해제.
-        //  - showLoadingPage("X")=u4a_main_load, setDomBusy("X")=u4aWsBusyIndicator(3-dot)
-        try { if (typeof setDomBusy === "function") { setDomBusy(""); } } catch (_) {}
-        try { if (typeof showLoadingPage === "function") { showLoadingPage(""); } } catch (_) {}
-        try { if (typeof setBusy === "function") { setBusy(""); } } catch (_) {}
+        // 메인 화면 로드 완료 → 전환 busy 해제(잠금 해제 + 강제 숨김).
+        //  - 원래 UI5 메인앱이 렌더 완료 후 껐으나, Main.html 로 대체되어 끄는 주체가
+        //    없었다. 새 공통 오버레이를 여기서 확실히 해제한다.
+        _hostBusyUnlockHide();
 
         // iframe 교체 후 드래그 영역 재계산 (stale 우회) — _test 검증 방식
         setTimeout(_kickHostDragRegion, 50);
@@ -517,6 +588,10 @@ window.loadWS30MainPage = loadWS30MainPage;
 
 // 공통 헤더 창버튼 연결 (index.js 는 body 끝에서 로드되므로 헤더 DOM 이 이미 존재)
 _wireHostHeader();
+
+// 창이 뜬 직후부터 busy 표시(잠금) — if-meta-info 수신 후 로그인/메인 iframe 의
+// load 에서 해제된다. (ServerList → 로그인 전환 시작 구간까지 빈 화면 노출 방지)
+_hostBusyShow("Loading…", true);
 
 // 메인 화면(Main.js) 빨간 전원 버튼이 호출하는 로그오프 진입점 공개
 try { window.__hostLogout = __hostLogout; } catch (_) {}

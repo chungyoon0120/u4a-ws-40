@@ -649,6 +649,11 @@ window.U4A_LOGO = window.U4A_LOGO || (function () {
                         oBrowserWindow.focus();
                     }
                 } catch (_) {}
+                // 새 로그인 창이 화면에 등장한 시점에 ServerList busy 해제.
+                //  - did-finish-load 에서 끄면 작은 호스트 셸이라 너무 빨리 꺼져(거의 1프레임)
+                //    스피너가 그려지기도 전에 사라졌다. 창이 실제 보이는 이 시점까지 유지한다.
+                //  - 이후 로그인 페이지 로딩은 호스트 창 자체 busy(#u4aHostBusy)가 이어받는다.
+                busy(false);
             };
             oBrowserWindow.once("ready-to-show", showLoginWin);
             // 안전망: 일부 환경에서 ready-to-show 가 안 오는 경우 대비 (최대 3초 후 강제 표시)
@@ -676,7 +681,7 @@ window.U4A_LOGO = window.U4A_LOGO || (function () {
             };
 
             oBrowserWindow.webContents.on("did-finish-load", function () {
-                busy(false);
+                // busy 해제는 showLoginWin(창 등장 시점)에서 처리한다. 여기서는 메타 전송만.
                 try {
                     oBrowserWindow.webContents.send("if-meta-info", {
                         SERVERINFO: oLoginInfo,
