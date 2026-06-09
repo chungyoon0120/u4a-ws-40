@@ -1,5 +1,14 @@
 {
   "mcpServers": {
+    "u4a-ws-comm": {
+      "command": "uv",
+      "args": [
+        "--directory",
+        "D:/workspace/u4a_ws_comm_mcp_server_py",
+        "run",
+        "u4a-ws-comm-mcp"
+      ]
+    },
     "sap-adt": {
       "command": "uv",
       "args": [
