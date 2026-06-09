@@ -17,8 +17,7 @@
     try {
 
         let sMsg = "[Claude Code] 응답 완료!!";
-        // https://api.telegram.org/bot5339265299:AAFUzW9Nt0eishcR8YoYJtjNKvAZHwofSFQ/sendmessage?chat_id=498542502&text=안녕하세요
-        
+
         let sUrl = `https://api.telegram.org/bot${HexToStr(oTelegramConfig.botToken)}/sendMessage`;
 
         await fetch(sUrl, {
