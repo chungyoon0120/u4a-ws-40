@@ -1,0 +1,9 @@
+[mcp_servers.yoon-mcp-server]
+enabled = true
+command = "uv"
+args = ["--directory", "D:/workspace/yoon_mcp_server", "run", "yoon-mcp"]
+
+[mcp_servers.u4a-ws-comm-mcp]
+enabled = true
+command = "uv"
+args = ["--directory", "D:/workspace/u4a_ws_comm_mcp_server_py", "run", "u4a-ws-comm-mcp"]

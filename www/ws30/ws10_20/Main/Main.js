@@ -368,6 +368,107 @@
     }
 
     function _openOptionsPopup() {
+        try {
+            if (P && P.oAPP && P.oAPP.fn && typeof P.oAPP.fn.fnWsOptionsPopupOpener === "function") {
+                P.oAPP.fn.fnWsOptionsPopupOpener();
+                return;
+            }
+        } catch (_) {}
+
+        try {
+            if (!P || !P.REMOTE || !P.WSUTIL || !P.PATHINFO) {
+                _openInlineOptionsPopup();
+                return;
+            }
+
+            var remote = P.REMOTE;
+            var currentWindow = P.CURRWIN || remote.getCurrentWindow();
+            var browserSettingsPath = (typeof P.getPath === "function") ? P.getPath("BROWSERSETTINGS") : P.PATHINFO.BROWSERSETTINGS;
+            var defaultOptions = P.require(browserSettingsPath);
+            var browserOptions = JSON.parse(JSON.stringify(defaultOptions.browserWindow || {}));
+            var themeInfo = (typeof P.getThemeInfo === "function" && P.getThemeInfo()) || {};
+            var browserKey = (typeof P.getBrowserKey === "function" && P.getBrowserKey()) || "";
+            var sessionKey = (typeof P.getSessionKey === "function" && P.getSessionKey()) || "";
+            var popupName = "WSOPTS";
+
+            if (P.WSUTIL.getCheckAlreadyOpenWindow) {
+                var check = P.WSUTIL.getCheckAlreadyOpenWindow(popupName);
+                if (check && check.ISOPEN) {
+                    if (P.WSUTIL.setParentCenterBounds) {
+                        P.WSUTIL.setParentCenterBounds(remote, check.WINDOW);
+                    }
+                    return;
+                }
+            }
+
+            browserOptions.title = "Options";
+            browserOptions.autoHideMenuBar = true;
+            browserOptions.parent = currentWindow;
+            browserOptions.backgroundColor = themeInfo.BGCOL || "#12171c";
+            browserOptions.opacity = 0;
+            browserOptions.show = false;
+            browserOptions.closable = false;
+            browserOptions.width = Math.max(browserOptions.width || 820, 820);
+            browserOptions.height = Math.max(browserOptions.height || 620, 620);
+            browserOptions.minWidth = 760;
+            browserOptions.minHeight = 540;
+            browserOptions.webPreferences = browserOptions.webPreferences || {};
+            browserOptions.webPreferences.partition = sessionKey;
+            browserOptions.webPreferences.browserkey = browserKey;
+            browserOptions.webPreferences.OBJTY = popupName;
+            try { browserOptions.webPreferences.USERINFO = P.process.USERINFO; } catch (_) {}
+
+            var optionWindow = new remote.BrowserWindow(browserOptions);
+            optionWindow.setMenu(null);
+
+            var loadPath = (typeof P.getPath === "function") ? P.getPath(popupName) : P.PATHINFO.WSOPTS;
+            var query = {
+                browserkey: browserKey,
+                sessionKey: sessionKey,
+                OBJTY: popupName,
+                USERINFO: (P.process && P.process.USERINFO) || {}
+            };
+            var loadUrl = P.WSUTIL.QueryString && P.WSUTIL.QueryString.build
+                ? P.WSUTIL.QueryString.build(loadPath, query)
+                : loadPath;
+
+            optionWindow.loadURL(loadUrl);
+
+            optionWindow.once("ready-to-show", function () {
+                if (P.WSUTIL.setParentCenterBounds) {
+                    P.WSUTIL.setParentCenterBounds(remote, optionWindow);
+                }
+            });
+
+            optionWindow.webContents.on("did-finish-load", function () {
+                var serverInfo = {};
+                var userInfo = {};
+                try { serverInfo = P.getServerInfo() || {}; } catch (_) {}
+                try { userInfo = P.getUserInfo() || {}; } catch (_) {}
+
+                optionWindow.webContents.send("if-ws-options-info", {
+                    BROWSKEY: browserKey,
+                    oUserInfo: userInfo,
+                    oServerInfo: serverInfo,
+                    SYSID: serverInfo.SYSID || userInfo.SYSID || "",
+                    THEME_INFO: themeInfo
+                });
+
+                if (P.WSUTIL.setParentCenterBounds) {
+                    P.WSUTIL.setParentCenterBounds(remote, optionWindow);
+                }
+            });
+
+            optionWindow.on("closed", function () {
+                optionWindow = null;
+                try { currentWindow.focus(); } catch (_) {}
+            });
+        } catch (_) {
+            _openInlineOptionsPopup();
+        }
+    }
+
+    function _openInlineOptionsPopup() {
         var cur = "purple";
         try { cur = document.documentElement.getAttribute("data-theme") || "purple"; } catch (_) {}
 
